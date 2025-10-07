@@ -15,11 +15,11 @@ function App() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center px-8 -mt-20">
-        <h1 className="text-white text-5xl md:text-7xl w-fit font-mono mb-2">
+        <h1 className="text-white text-4xl md:text-7xl font-mono mb-6 text-center">
           hey, I'm <span className="text-teal-400">workout_gen</span>
         </h1>
 
-        <p className="text-white text-xl md:text-2xl font-sans mb-12">
+        <p className="text-white text-lg md:text-2xl font-sans mb-12 text-center max-w-md">
           Generate personalized workout routines
         </p>
 
