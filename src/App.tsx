@@ -1,6 +1,25 @@
 /** @format */
 
+import { useAuth } from "./hooks/useAuth";
+import { supabase } from "./lib/supabase";
+
+const handleSignIn = async () => {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}/`,
+    },
+  });
+  if (error) console.error("Error signing in:", error.message);
+};
+
+const handleSignOut = async () => {
+  const { error } = await supabase.auth.signOut();
+  if (error) console.error("Error signing out:", error.message);
+};
+
 function App() {
+  const { user, loading } = useAuth();
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header */}
@@ -8,8 +27,12 @@ function App() {
         <span className="font-sans text-3xl font-bold text-white drop-shadow-text">
           workout_gen
         </span>
-        <button className="w-fit active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-2 px-4 text-white font-mono text-xl bg-black border-2 border-white cursor-pointer select-none">
-          Sign In
+        <button
+          disabled={loading}
+          onClick={!user ? handleSignIn : handleSignOut}
+          className="w-fit active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-2 px-4 text-white font-mono text-xl bg-black border-2 border-white cursor-pointer select-none"
+        >
+          {!user ? "Sign In" : "Sign out"}
         </button>
       </header>
 
@@ -23,9 +46,15 @@ function App() {
           Generate personalized workout routines
         </p>
 
-        <button className="w-fit active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-6 text-white font-mono text-2xl bg-black border-2 border-white cursor-pointer select-none">
-          Get Started
-        </button>
+        {!user ? (
+          <button
+            disabled={loading}
+            onClick={handleSignIn}
+            className="w-fit active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-6 text-white font-mono text-2xl bg-black border-2 border-white cursor-pointer select-none"
+          >
+            Get Started
+          </button>
+        ) : null}
       </main>
 
       {/* Footer */}
