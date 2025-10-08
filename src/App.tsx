@@ -7,7 +7,7 @@ const handleSignIn = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/`,
+      redirectTo: `${import.meta.env.VITE_APP_URL}`,
     },
   });
   if (error) console.error("Error signing in:", error.message);
