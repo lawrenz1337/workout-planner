@@ -2,6 +2,7 @@
 
 import { useAuth } from "./hooks/useAuth";
 import { supabase } from "./lib/supabase";
+import Dashboard from "./components/Dashboard";
 
 const handleSignIn = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
@@ -20,6 +21,22 @@ const handleSignOut = async () => {
 
 function App() {
   const { user, loading } = useAuth();
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-2xl font-mono text-teal-400">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show dashboard if user is logged in
+  if (user) {
+    return <Dashboard user={user} onSignOut={handleSignOut} />;
+  }
+
+  // Show landing page if user is not logged in
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header */}
@@ -29,10 +46,10 @@ function App() {
         </span>
         <button
           disabled={loading}
-          onClick={!user ? handleSignIn : handleSignOut}
+          onClick={handleSignIn}
           className="w-fit active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-2 px-4 text-white font-mono text-xl bg-black border-2 border-white cursor-pointer select-none"
         >
-          {!user ? "Sign In" : "Sign out"}
+          Sign In
         </button>
       </header>
 
@@ -46,15 +63,13 @@ function App() {
           Generate personalized workout routines
         </p>
 
-        {!user ? (
-          <button
-            disabled={loading}
-            onClick={handleSignIn}
-            className="w-fit active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-6 text-white font-mono text-2xl bg-black border-2 border-white cursor-pointer select-none"
-          >
-            Get Started
-          </button>
-        ) : null}
+        <button
+          disabled={loading}
+          onClick={handleSignIn}
+          className="w-fit active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-6 text-white font-mono text-2xl bg-black border-2 border-white cursor-pointer select-none"
+        >
+          Get Started
+        </button>
       </main>
 
       {/* Footer */}
