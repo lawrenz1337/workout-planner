@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
+import { deleteCurrentUser } from "../services/user";
+import ExerciseLibrary from "./ExerciseLibrary";
 
 interface DashboardProps {
   user: User;
@@ -33,16 +35,8 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
     try {
-      // Call Supabase Edge Function or RPC to delete user
-      const { error } = await supabase.rpc("delete_user");
-
-      if (error) {
-        console.error("Error deleting account:", error);
-        alert("Failed to delete account. Please try again or contact support.");
-      } else {
-        // Sign out after successful deletion
-        await supabase.auth.signOut();
-      }
+      await deleteCurrentUser();
+      await supabase.auth.signOut();
     } catch (err) {
       console.error("Error:", err);
       alert("An error occurred. Please try again.");
@@ -70,16 +64,7 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
           </div>
         );
       case "exercises":
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4 font-mono">
-              Exercise Library
-            </h2>
-            <p className="text-gray-400 font-sans">
-              Browse and manage your exercise database.
-            </p>
-          </div>
-        );
+        return <ExerciseLibrary />;
       case "progress":
         return (
           <div className="space-y-4">
