@@ -3,12 +3,16 @@
 import { useState } from "react";
 import { useExercises } from "../hooks/useExercises";
 import {
-  Exercise,
   ExerciseCategory,
   ExerciseDifficulty,
   getCategoryIcon,
   getCategoryDisplayName,
 } from "../types/exercise";
+import {
+  EnhancedExercise,
+  getMuscleGroupDisplayName,
+  getMuscleGroupIcon,
+} from "../types/enhanced-types";
 
 const difficultyColors = {
   beginner: "bg-green-500",
@@ -25,9 +29,8 @@ export default function ExerciseLibrary() {
     ExerciseDifficulty | "all"
   >("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
-    null,
-  );
+  const [selectedExercise, setSelectedExercise] =
+    useState<EnhancedExercise | null>(null);
 
   const filteredExercises = exercises.filter((exercise) => {
     const matchesCategory =
@@ -241,10 +244,10 @@ export default function ExerciseLibrary() {
 
 // Exercise Detail Modal Component
 interface ExerciseDetailModalProps {
-  exercise: Exercise;
+  exercise: EnhancedExercise;
   onClose: () => void;
-  exercises: Exercise[];
-  onNavigate: (exercise: Exercise) => void;
+  exercises: EnhancedExercise[];
+  onNavigate: (exercise: EnhancedExercise) => void;
 }
 
 function ExerciseDetailModal({
@@ -261,150 +264,206 @@ function ExerciseDetailModal({
   );
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4"
-      onClick={onClose}
-    >
+    <div>
       <div
-        className="bg-black border-2 border-teal-400 p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
+        className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4 m-0"
+        onClick={onClose}
       >
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <span className="text-4xl">
-              {getCategoryIcon(exercise.category)}
-            </span>
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold font-mono">
-                {exercise.name}
-              </h2>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-sm text-gray-400 font-mono">
-                  {getCategoryDisplayName(exercise.category)}
-                </span>
-                <span
-                  className={`${difficultyColors[exercise.difficulty]} text-xs px-2 py-1 text-black font-mono`}
-                >
-                  {exercise.difficulty}
-                </span>
+        <div
+          className="bg-black border-2 border-teal-400 p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <span className="text-4xl">
+                {getCategoryIcon(exercise.category)}
+              </span>
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold font-mono">
+                  {exercise.name}
+                </h2>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-sm text-gray-400 font-mono">
+                    {getCategoryDisplayName(exercise.category)}
+                  </span>
+                  <span
+                    className={`${difficultyColors[exercise.difficulty]} text-xs px-2 py-1 text-black font-mono`}
+                  >
+                    {exercise.difficulty}
+                  </span>
+                </div>
               </div>
             </div>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-white text-2xl"
+            >
+              ✕
+            </button>
           </div>
+
+          {/* Description */}
+          <div className="mb-4">
+            <h3 className="text-lg font-bold mb-2 text-teal-400 font-mono">
+              Description
+            </h3>
+            <p className="text-gray-300 font-sans">{exercise.description}</p>
+          </div>
+
+          {/* Form Cues */}
+          {exercise.form_cues.length > 0 && (
+            <div className="mb-4">
+              <h3 className="text-lg font-bold mb-2 text-teal-400 font-mono">
+                Form Cues
+              </h3>
+              <ul className="space-y-2">
+                {exercise.form_cues.map((cue, index) => (
+                  <li
+                    key={index}
+                    className="flex items-start gap-2 text-gray-300 font-sans"
+                  >
+                    <span className="text-teal-400 mt-1">•</span>
+                    <span>{cue}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Default Sets/Reps */}
+          <div className="mb-4">
+            <h3 className="text-lg font-bold mb-2 text-teal-400 font-mono">
+              Recommended Volume
+            </h3>
+            <p className="text-gray-300 font-mono">
+              {exercise.default_sets} sets ×{" "}
+              {exercise.default_reps
+                ? `${exercise.default_reps} reps`
+                : exercise.default_duration_seconds
+                  ? `${exercise.default_duration_seconds}s`
+                  : ""}
+            </p>
+          </div>
+
+          {/* Equipment */}
+          <div className="mb-4">
+            <h3 className="text-lg font-bold mb-2 text-teal-400 font-mono">
+              Equipment
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {exercise.equipment.map((equip) => (
+                <span
+                  key={equip}
+                  className="bg-black border border-white text-gray-300 px-3 py-1 text-sm font-mono"
+                >
+                  {equip.replace(/_/g, " ")}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Muscle Groups - Add this NEW section */}
+          {(exercise.muscles_primary?.length > 0 ||
+            exercise.muscles_secondary?.length > 0) && (
+            <div className="mb-4">
+              <h3 className="text-lg font-bold mb-2 text-teal-400 font-mono">
+                Muscles Worked
+              </h3>
+
+              {/* Primary Muscles */}
+              {exercise.muscles_primary &&
+                exercise.muscles_primary.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-xs text-gray-400 font-mono mb-2">
+                      PRIMARY
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {exercise.muscles_primary.map((muscle) => (
+                        <span
+                          key={muscle}
+                          className="bg-black border border-white text-gray-300 px-3 py-1 text-sm font-mono flex items-center gap-1"
+                        >
+                          <span>{getMuscleGroupIcon(muscle)}</span>
+                          <span>{getMuscleGroupDisplayName(muscle)}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              {/* Secondary Muscles */}
+              {exercise.muscles_secondary &&
+                exercise.muscles_secondary.length > 0 && (
+                  <div>
+                    <p className="text-xs text-gray-400 font-mono mb-2">
+                      SECONDARY
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {exercise.muscles_secondary.map((muscle) => (
+                        <span
+                          key={muscle}
+                          className="bg-black border border-white text-gray-300 px-3 py-1 text-sm font-mono flex items-center gap-1"
+                        >
+                          <span>{getMuscleGroupIcon(muscle)}</span>
+                          <span>{getMuscleGroupDisplayName(muscle)}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+            </div>
+          )}
+
+          {/* Progressions */}
+          {(regression || progression) && (
+            <div className="mb-4">
+              <h3 className="text-lg font-bold mb-2 text-teal-400 font-mono">
+                Progression Path
+              </h3>
+              <div className="space-y-2">
+                {regression && (
+                  <button
+                    onClick={() => onNavigate(regression)}
+                    className="w-full bg-black border-2 border-white hover:border-teal-400 p-3 text-left transition-all"
+                  >
+                    <p className="text-xs text-gray-400 mb-1 font-mono">
+                      ← Easier
+                    </p>
+                    <p className="text-white font-mono">{regression.name}</p>
+                  </button>
+                )}
+                <div className="bg-teal-400 bg-opacity-20 border-2 border-teal-400 p-3">
+                  <p className="text-xs text-teal-400 mb-1 font-mono">
+                    Current
+                  </p>
+                  <p className="text-white font-mono font-bold">
+                    {exercise.name}
+                  </p>
+                </div>
+                {progression && (
+                  <button
+                    onClick={() => onNavigate(progression)}
+                    className="w-full bg-black border-2 border-white hover:border-teal-400 p-3 text-left transition-all"
+                  >
+                    <p className="text-xs text-gray-400 mb-1 font-mono">
+                      Harder →
+                    </p>
+                    <p className="text-white font-mono">{progression.name}</p>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Close Button */}
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white text-2xl"
+            className="w-full active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-2 px-4 text-white font-mono text-lg bg-black border-2 border-white cursor-pointer select-none"
           >
-            ✕
+            Close
           </button>
         </div>
-
-        {/* Description */}
-        <div className="mb-4">
-          <h3 className="text-lg font-bold mb-2 text-teal-400 font-mono">
-            Description
-          </h3>
-          <p className="text-gray-300 font-sans">{exercise.description}</p>
-        </div>
-
-        {/* Form Cues */}
-        {exercise.form_cues.length > 0 && (
-          <div className="mb-4">
-            <h3 className="text-lg font-bold mb-2 text-teal-400 font-mono">
-              Form Cues
-            </h3>
-            <ul className="space-y-2">
-              {exercise.form_cues.map((cue, index) => (
-                <li
-                  key={index}
-                  className="flex items-start gap-2 text-gray-300 font-sans"
-                >
-                  <span className="text-teal-400 mt-1">•</span>
-                  <span>{cue}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Default Sets/Reps */}
-        <div className="mb-4">
-          <h3 className="text-lg font-bold mb-2 text-teal-400 font-mono">
-            Recommended Volume
-          </h3>
-          <p className="text-gray-300 font-mono">
-            {exercise.default_sets} sets ×{" "}
-            {exercise.default_reps
-              ? `${exercise.default_reps} reps`
-              : exercise.default_duration_seconds
-                ? `${exercise.default_duration_seconds}s`
-                : ""}
-          </p>
-        </div>
-
-        {/* Equipment */}
-        <div className="mb-4">
-          <h3 className="text-lg font-bold mb-2 text-teal-400 font-mono">
-            Equipment
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {exercise.equipment.map((equip) => (
-              <span
-                key={equip}
-                className="bg-black border border-white text-gray-300 px-3 py-1 text-sm font-mono"
-              >
-                {equip.replace(/_/g, " ")}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Progressions */}
-        {(regression || progression) && (
-          <div className="mb-4">
-            <h3 className="text-lg font-bold mb-2 text-teal-400 font-mono">
-              Progression Path
-            </h3>
-            <div className="space-y-2">
-              {regression && (
-                <button
-                  onClick={() => onNavigate(regression)}
-                  className="w-full bg-black border-2 border-white hover:border-teal-400 p-3 text-left transition-all"
-                >
-                  <p className="text-xs text-gray-400 mb-1 font-mono">
-                    ← Easier
-                  </p>
-                  <p className="text-white font-mono">{regression.name}</p>
-                </button>
-              )}
-              <div className="bg-teal-400 bg-opacity-20 border-2 border-teal-400 p-3">
-                <p className="text-xs text-teal-400 mb-1 font-mono">Current</p>
-                <p className="text-white font-mono font-bold">
-                  {exercise.name}
-                </p>
-              </div>
-              {progression && (
-                <button
-                  onClick={() => onNavigate(progression)}
-                  className="w-full bg-black border-2 border-white hover:border-teal-400 p-3 text-left transition-all"
-                >
-                  <p className="text-xs text-gray-400 mb-1 font-mono">
-                    Harder →
-                  </p>
-                  <p className="text-white font-mono">{progression.name}</p>
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="w-full active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-2 px-4 text-white font-mono text-lg bg-black border-2 border-white cursor-pointer select-none"
-        >
-          Close
-        </button>
       </div>
     </div>
   );

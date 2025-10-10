@@ -1,6 +1,6 @@
 /** @format */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { workoutGenerator } from "../services/workoutGenerator";
 import {
   GeneratedWorkout,
@@ -17,6 +17,7 @@ import {
   getEquipmentDisplayName,
 } from "../types/exercise";
 import { useExercises } from "../hooks/useExercises";
+import { useUserPreferences } from "../hooks/useUserPreferences";
 import { EQUIPMENT_OPTIONS } from "../constants";
 import ActiveWorkoutTracker from "./ActiveWorkoutTracker";
 
@@ -35,7 +36,10 @@ export default function WorkoutGenerator({
   const [workoutOptions, setWorkoutOptions] =
     useState<WorkoutGenerationOptions | null>(null);
 
-  // Form state
+  const { preferences, loading: preferencesLoading } =
+    useUserPreferences(userId);
+
+  // Form state - will be pre-filled from preferences
   const [duration, setDuration] = useState(30);
   const [difficulty, setDifficulty] = useState<ExerciseDifficulty[]>([
     ExerciseDifficulty.INTERMEDIATE,
@@ -52,6 +56,29 @@ export default function WorkoutGenerator({
   const [equipment, setEquipment] = useState<Equipment[]>([
     Equipment.BODYWEIGHT_ONLY,
   ]);
+
+  // Pre-fill form from user preferences
+  useEffect(() => {
+    if (preferences) {
+      // Set duration from preferences
+      if (preferences.default_workout_duration) {
+        setDuration(preferences.default_workout_duration);
+      }
+
+      // Set difficulty from preferences
+      if (preferences.difficulty_level) {
+        setDifficulty([preferences.difficulty_level]);
+      }
+
+      // Set equipment from preferences
+      if (
+        preferences.available_equipment &&
+        preferences.available_equipment.length > 0
+      ) {
+        setEquipment(preferences.available_equipment);
+      }
+    }
+  }, [preferences]);
 
   const categories: ExerciseCategory[] = [
     ExerciseCategory.UPPER_PUSH,
@@ -184,6 +211,16 @@ export default function WorkoutGenerator({
 
     setGeneratedWorkout(updatedWorkout);
   };
+
+  if (preferencesLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-xl font-mono text-teal-400">
+          Loading your preferences...
+        </div>
+      </div>
+    );
+  }
 
   if (isWorkoutActive && generatedWorkout) {
     return (

@@ -10,6 +10,17 @@ export interface BMRParams {
   sex: Sex;
 }
 
+export interface BMIParams {
+  weightKg: number;
+  heightCm: number;
+}
+
+export interface BMIResult {
+  bmi: number;
+  category: "underweight" | "normal" | "overweight" | "obese";
+  categoryLabel: string;
+}
+
 /**
  * Calculate Basal Metabolic Rate using Mifflin-St Jeor Equation
  * BMR is the number of calories your body burns at rest
@@ -34,4 +45,37 @@ export function calculateTDEE(
   activityLevel: ActivityLevel,
 ): number {
   return Math.round(bmr * ACTIVITY_MULTIPLIERS[activityLevel]);
+}
+
+/**
+ * Calculate Body Mass Index (BMI)
+ * BMI = weight(kg) / (height(m))^2
+ */
+export function calculateBMI(params: BMIParams): BMIResult {
+  const { weightKg, heightCm } = params;
+  const heightM = heightCm / 100;
+  const bmi = weightKg / (heightM * heightM);
+
+  let category: BMIResult["category"];
+  let categoryLabel: string;
+
+  if (bmi < 18.5) {
+    category = "underweight";
+    categoryLabel = "Underweight";
+  } else if (bmi < 25) {
+    category = "normal";
+    categoryLabel = "Normal Weight";
+  } else if (bmi < 30) {
+    category = "overweight";
+    categoryLabel = "Overweight";
+  } else {
+    category = "obese";
+    categoryLabel = "Obese";
+  }
+
+  return {
+    bmi: Math.round(bmi * 10) / 10, // Round to 1 decimal
+    category,
+    categoryLabel,
+  };
 }

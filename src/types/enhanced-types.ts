@@ -35,6 +35,7 @@ export type MuscleGroup =
   | "wrists"
   | "spine"
   | "hips"
+  | "legs"
   | "full_body"
   | "cardiovascular"
   | "coordination"
@@ -349,7 +350,7 @@ export {
  * Calories = MET × weight(kg) × duration(hours)
  */
 export function calculateCaloriesBurned(
-  input: CalorieCalculationInput
+  input: CalorieCalculationInput,
 ): CalorieCalculationResult {
   const calories_per_category: Record<string, number> = {};
   let total_calories = 0;
@@ -393,6 +394,7 @@ export function getMuscleGroupDisplayName(muscle: MuscleGroup): string {
     quads: "Quadriceps",
     hamstrings: "Hamstrings",
     glutes: "Glutes",
+    legs: "Legs",
     calves: "Calves",
     hip_flexors: "Hip Flexors",
     ankles: "Ankles",
@@ -424,6 +426,7 @@ export function getMuscleGroupIcon(muscle: MuscleGroup): string {
     obliques: "🎯",
     core: "🎯",
     quads: "🦵",
+    legs: "🦵",
     hamstrings: "🦵",
     glutes: "🍑",
     calves: "🦵",
@@ -465,6 +468,7 @@ export function getMuscleGroupColor(muscle: MuscleGroup): string {
     wrists: "#f43f5e",
     spine: "#94a3b8",
     hips: "#64748b",
+    legs: "#6918fb",
     full_body: "#14b8a6",
     cardiovascular: "#ef4444",
     coordination: "#f59e0b",
@@ -502,7 +506,7 @@ export function calculateStreak(workouts: EnhancedWorkout[]): WorkoutStreak {
     .sort(
       (a, b) =>
         new Date(b.completed_at!).getTime() -
-        new Date(a.completed_at!).getTime()
+        new Date(a.completed_at!).getTime(),
     );
 
   let current_streak = 0;
@@ -526,7 +530,7 @@ export function calculateStreak(workouts: EnhancedWorkout[]): WorkoutStreak {
       }
     } else {
       const day_diff = Math.floor(
-        (previous_date.getTime() - workout_date.getTime()) / 86400000
+        (previous_date.getTime() - workout_date.getTime()) / 86400000,
       );
 
       if (day_diff === 1) {

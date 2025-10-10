@@ -10,7 +10,11 @@ import {
 } from "../types/enhanced-types";
 import { getEquipmentDisplayName } from "../types/exercise";
 import { useUserPreferences } from "../hooks/useUserPreferences";
-import { calculateBMR, calculateTDEE } from "../utils/calorie-calculator";
+import {
+  calculateBMR,
+  calculateTDEE,
+  calculateBMI,
+} from "../utils/calorie-calculator";
 import { EQUIPMENT_OPTIONS, ACTIVITY_LEVEL_LABELS } from "../constants";
 import { Button } from "./ui/Button";
 
@@ -71,6 +75,9 @@ export default function UserProfileSettings({
       : null;
 
   const tdeeValue = bmrValue ? calculateTDEE(bmrValue, activityLevel) : null;
+
+  const bmiResult =
+    weightKg && heightCm ? calculateBMI({ weightKg, heightCm }) : null;
 
   const handleSave = async () => {
     setSaving(true);
@@ -216,27 +223,61 @@ export default function UserProfileSettings({
           </select>
         </div>
 
-        {/* Calorie Calculations */}
-        {bmrValue && tdeeValue && (
+        {/* Health Metrics */}
+        {(bmrValue || bmiResult) && (
           <div className="mt-6 p-4 bg-black border-2 border-teal-400">
-            <p className="text-sm font-mono text-gray-400 mb-2">
-              Your Daily Estimates:
+            <p className="text-sm font-mono text-gray-400 mb-4">
+              Your Health Metrics:
             </p>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs text-gray-400 font-mono">BMR</p>
-                <p className="text-2xl font-mono text-white">{bmrValue}</p>
-                <p className="text-xs text-gray-400 font-sans">
-                  calories/day at rest
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 font-mono">TDEE</p>
-                <p className="text-2xl font-mono text-teal-400">{tdeeValue}</p>
-                <p className="text-xs text-gray-400 font-sans">
-                  total calories/day
-                </p>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* BMI */}
+              {bmiResult && (
+                <div>
+                  <p className="text-xs text-gray-400 font-mono">BMI</p>
+                  <p className="text-2xl font-mono text-white">
+                    {bmiResult.bmi}
+                  </p>
+                  <p className="text-xs font-sans mt-1">
+                    <span
+                      className={`${
+                        bmiResult.category === "normal"
+                          ? "text-green-400"
+                          : bmiResult.category === "underweight"
+                            ? "text-yellow-400"
+                            : bmiResult.category === "overweight"
+                              ? "text-orange-400"
+                              : "text-red-400"
+                      }`}
+                    >
+                      {bmiResult.categoryLabel}
+                    </span>
+                  </p>
+                </div>
+              )}
+
+              {/* BMR */}
+              {bmrValue && (
+                <div>
+                  <p className="text-xs text-gray-400 font-mono">BMR</p>
+                  <p className="text-2xl font-mono text-white">{bmrValue}</p>
+                  <p className="text-xs text-gray-400 font-sans">
+                    calories/day at rest
+                  </p>
+                </div>
+              )}
+
+              {/* TDEE */}
+              {tdeeValue && (
+                <div>
+                  <p className="text-xs text-gray-400 font-mono">TDEE</p>
+                  <p className="text-2xl font-mono text-teal-400">
+                    {tdeeValue}
+                  </p>
+                  <p className="text-xs text-gray-400 font-sans">
+                    total calories/day
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}

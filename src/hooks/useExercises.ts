@@ -1,12 +1,12 @@
 /** @format */
 import { supabase } from "../lib/supabase";
-import { Exercise } from "../types/exercise";
+import { EnhancedExercise } from "../types";
 import { useQuery } from "@tanstack/react-query";
 
 export function useExercises() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["exercises", { is_default: true }],
-    queryFn: async (): Promise<Exercise[]> => {
+    queryFn: async (): Promise<EnhancedExercise[]> => {
       const { data, error } = await supabase
         .from("exercises")
         .select("*")
