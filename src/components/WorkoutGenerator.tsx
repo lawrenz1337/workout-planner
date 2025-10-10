@@ -3,13 +3,14 @@
 import { useState } from "react";
 import {
   workoutGenerator,
-  WorkoutGenerationOptions,
   GeneratedWorkout,
 } from "../services/workoutGenerator";
 import {
   ExerciseCategory,
   ExerciseDifficulty,
   Equipment,
+  WorkoutType,
+  WorkoutGenerationOptions,
   getCategoryIcon,
   getCategoryDisplayName,
   getEquipmentDisplayName,
@@ -25,6 +26,7 @@ export default function WorkoutGenerator() {
   const [difficulty, setDifficulty] = useState<ExerciseDifficulty>(
     ExerciseDifficulty.INTERMEDIATE,
   );
+  const [workoutType, setWorkoutType] = useState<WorkoutType>(WorkoutType.HOME);
   const [selectedCategories, setSelectedCategories] = useState<
     ExerciseCategory[]
   >([
@@ -92,6 +94,7 @@ export default function WorkoutGenerator() {
         duration_minutes: duration,
         difficulty,
         categories: selectedCategories,
+        workout_type: workoutType,
         available_equipment: equipment,
         include_warmup: true,
         include_cooldown: true,
@@ -143,6 +146,35 @@ export default function WorkoutGenerator() {
         <div className="flex justify-between text-xs text-gray-500 font-mono mt-1">
           <span>15 min</span>
           <span>60 min</span>
+        </div>
+      </div>
+
+      {/* Workout Type */}
+      <div>
+        <label className="block text-sm font-mono text-gray-400 mb-2">
+          Workout Type
+        </label>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setWorkoutType(WorkoutType.HOME)}
+            className={`px-4 py-2 font-mono text-sm transition-colors border-2 ${
+              workoutType === WorkoutType.HOME
+                ? "bg-teal-400 text-black border-teal-400"
+                : "bg-black text-white border-white hover:border-teal-400"
+            }`}
+          >
+            🏠 Home Workout
+          </button>
+          <button
+            onClick={() => setWorkoutType(WorkoutType.GYM)}
+            className={`px-4 py-2 font-mono text-sm transition-colors border-2 ${
+              workoutType === WorkoutType.GYM
+                ? "bg-teal-400 text-black border-teal-400"
+                : "bg-black text-white border-white hover:border-teal-400"
+            }`}
+          >
+            🏋️ Gym Workout
+          </button>
         </div>
       </div>
 
@@ -262,7 +294,7 @@ function WorkoutPreview({
             {workout.name}
           </h2>
           <p className="text-gray-400 font-sans">
-            {workout.total_duration_minutes} minute workout •{" "}
+            {workout.total_duration_minutes} minute {workout.type} workout •{" "}
             {workout.main_work.length} exercises
           </p>
         </div>

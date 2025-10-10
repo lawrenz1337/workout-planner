@@ -126,6 +126,7 @@ export interface WorkoutGenerationOptions {
   duration_minutes: number;
   categories: ExerciseCategory[];
   difficulty: ExerciseDifficulty;
+  workout_type: WorkoutType;
   available_equipment: Equipment[];
   include_warmup: boolean;
   include_cooldown: boolean;

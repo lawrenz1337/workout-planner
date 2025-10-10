@@ -5,16 +5,9 @@ import {
   ExerciseCategory,
   ExerciseDifficulty,
   Equipment,
+  WorkoutType,
+  WorkoutGenerationOptions,
 } from "../types/exercise";
-
-export interface WorkoutGenerationOptions {
-  duration_minutes: number;
-  difficulty: ExerciseDifficulty;
-  categories: ExerciseCategory[];
-  available_equipment: Equipment[];
-  include_warmup: boolean;
-  include_cooldown: boolean;
-}
 
 export interface GeneratedWorkoutExercise {
   exercise: Exercise;
@@ -27,6 +20,7 @@ export interface GeneratedWorkoutExercise {
 
 export interface GeneratedWorkout {
   name: string;
+  type: WorkoutType;
   warmup: GeneratedWorkoutExercise[];
   main_work: GeneratedWorkoutExercise[];
   cooldown: GeneratedWorkoutExercise[];
@@ -45,6 +39,7 @@ class WorkoutGeneratorService {
       duration_minutes,
       difficulty,
       categories,
+      workout_type,
       available_equipment,
       include_warmup,
       include_cooldown,
@@ -55,11 +50,12 @@ class WorkoutGeneratorService {
     const cooldownTime = include_cooldown ? 5 : 0;
     const mainWorkTime = duration_minutes - warmupTime - cooldownTime;
 
-    // Filter exercises by difficulty and equipment
+    // Filter exercises by difficulty, equipment, and location
     const availableExercises = this.filterExercises(
       exercises,
       difficulty,
       available_equipment,
+      workout_type,
     );
 
     // Generate each section
@@ -79,6 +75,7 @@ class WorkoutGeneratorService {
 
     return {
       name: this.generateWorkoutName(categories, difficulty),
+      type: workout_type,
       warmup,
       main_work: mainWork,
       cooldown,
@@ -87,12 +84,13 @@ class WorkoutGeneratorService {
   }
 
   /**
-   * Filter exercises by difficulty and available equipment
+   * Filter exercises by difficulty, available equipment, and workout location
    */
   private filterExercises(
     exercises: Exercise[],
     difficulty: ExerciseDifficulty,
     availableEquipment: Equipment[],
+    workoutType: WorkoutType,
   ): Exercise[] {
     return exercises.filter((exercise) => {
       // Match difficulty level
@@ -107,7 +105,13 @@ class WorkoutGeneratorService {
         availableEquipment.includes(required as Equipment),
       );
 
-      return difficultyMatch && equipmentMatch;
+      // Filter by location based on workout type
+      const locationMatch =
+        workoutType === WorkoutType.HOME
+          ? exercise.location === "home" || exercise.location === "both"
+          : true; // Gym workouts can use all exercises
+
+      return difficultyMatch && equipmentMatch && locationMatch;
     });
   }
 
