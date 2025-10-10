@@ -4,9 +4,11 @@ import { useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import { deleteCurrentUser } from "../services/user";
+import { useUserPreferences } from "../hooks/useUserPreferences";
 import ExerciseLibrary from "./ExerciseLibrary";
 import WorkoutGenerator from "./WorkoutGenerator";
 import UserProfileSettings from "./UserProfileSettings";
+import WorkoutHistory from "./WorkoutHistory";
 
 interface DashboardProps {
   user: User;
@@ -22,6 +24,8 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const { preferences } = useUserPreferences(user.id);
 
   const tabs: Tabs = [
     { id: "workouts", label: "Workouts", icon: "💪" },
@@ -53,7 +57,12 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
     switch (activeTab) {
       case "workouts":
         if (showGenerator) {
-          return <WorkoutGenerator />;
+          return (
+            <WorkoutGenerator
+              userId={user.id}
+              userWeightKg={preferences?.weight_kg}
+            />
+          );
         }
         return (
           <div className="space-y-4">
@@ -75,16 +84,7 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
       case "exercises":
         return <ExerciseLibrary />;
       case "progress":
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4 font-mono">
-              Your Progress
-            </h2>
-            <p className="text-gray-400 font-sans">
-              Track your fitness journey and see your improvements over time.
-            </p>
-          </div>
-        );
+        return <WorkoutHistory userId={user.id} />;
       case "settings":
         return (
           <div className="space-y-6">

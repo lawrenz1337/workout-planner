@@ -19,7 +19,15 @@ import {
 import { useExercises } from "../hooks/useExercises";
 import ActiveWorkoutTracker from "./ActiveWorkoutTracker";
 
-export default function WorkoutGenerator() {
+interface WorkoutGeneratorProps {
+  userId: string;
+  userWeightKg?: number;
+}
+
+export default function WorkoutGenerator({
+  userId,
+  userWeightKg,
+}: WorkoutGeneratorProps) {
   const [generatedWorkout, setGeneratedWorkout] =
     useState<GeneratedWorkout | null>(null);
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
@@ -110,14 +118,13 @@ export default function WorkoutGenerator() {
     }
 
     try {
-      // Filter exercises by selected difficulties
       const filteredExercises = exercises.filter((ex) =>
         difficulty.includes(ex.difficulty),
       );
 
       const options: WorkoutGenerationOptions = {
         duration_minutes: duration,
-        difficulty: difficulty[0], // Primary difficulty for backward compatibility
+        difficulty: difficulty[0],
         categories: selectedCategories,
         workout_type: workoutType,
         available_equipment: equipment,
@@ -145,11 +152,8 @@ export default function WorkoutGenerator() {
 
     const currentExercise = generatedWorkout[section][index];
 
-    // Filter exercises for substitution
     const availableExercises = exercises.filter((ex) => {
-      // Must be same category
       if (ex.category !== currentExercise.exercise.category) return false;
-      // Must not already be in the workout
       const allWorkoutExercises = [
         ...generatedWorkout.warmup,
         ...generatedWorkout.main_work,
@@ -157,14 +161,11 @@ export default function WorkoutGenerator() {
       ];
       if (allWorkoutExercises.some((we) => we.exercise.id === ex.id))
         return false;
-      // Must match one of the selected difficulties
       if (!difficulty.includes(ex.difficulty)) return false;
-      // Must have compatible equipment
       const hasCompatibleEquipment = ex.equipment.some((eq) =>
         workoutOptions.available_equipment.includes(eq),
       );
       if (!hasCompatibleEquipment) return false;
-
       return true;
     });
 
@@ -173,11 +174,9 @@ export default function WorkoutGenerator() {
       return;
     }
 
-    // Pick a random alternative
     const randomIndex = Math.floor(Math.random() * availableExercises.length);
     const newExercise = availableExercises[randomIndex];
 
-    // Create new exercise with same sets/reps/rest as the one being replaced
     const substitutedExercise: GeneratedWorkoutExercise = {
       exercise: newExercise,
       sets: currentExercise.sets,
@@ -189,7 +188,6 @@ export default function WorkoutGenerator() {
       order_index: currentExercise.order_index,
     };
 
-    // Update the workout
     const updatedWorkout = { ...generatedWorkout };
     updatedWorkout[section] = [...updatedWorkout[section]];
     updatedWorkout[section][index] = substitutedExercise;
@@ -201,10 +199,11 @@ export default function WorkoutGenerator() {
     return (
       <ActiveWorkoutTracker
         workout={generatedWorkout}
+        userId={userId}
+        userWeightKg={userWeightKg}
         onComplete={() => {
           setIsWorkoutActive(false);
           setGeneratedWorkout(null);
-          alert("Workout completed! Great job! 💪");
         }}
         onExit={() => {
           if (

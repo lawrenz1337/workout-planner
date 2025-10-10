@@ -5,9 +5,17 @@ import {
   GeneratedWorkout,
   GeneratedWorkoutExercise,
 } from "../services/workoutGenerator";
+import {
+  saveWorkout,
+  logWorkoutSet,
+  completeWorkout,
+} from "../services/workoutService";
+import { PersonalRecord } from "../types/enhanced-types";
 
 interface ActiveWorkoutTrackerProps {
   workout: GeneratedWorkout;
+  userId: string;
+  userWeightKg?: number;
   onComplete: () => void;
   onExit: () => void;
 }
@@ -22,6 +30,8 @@ interface SetLog {
 
 export default function ActiveWorkoutTracker({
   workout,
+  userId,
+  userWeightKg,
   onComplete,
   onExit,
 }: ActiveWorkoutTrackerProps) {
@@ -35,8 +45,49 @@ export default function ActiveWorkoutTracker({
   const [workoutStartTime] = useState(Date.now());
   const [elapsedTime, setElapsedTime] = useState(0);
 
+  // Track workout ID and exercise IDs after saving
+  const [workoutId, setWorkoutId] = useState<string | null>(null);
+  const [workoutExerciseIds, setWorkoutExerciseIds] = useState<
+    Record<string, string>
+  >({});
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Completion state
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [completionData, setCompletionData] = useState<{
+    newPRs: PersonalRecord[];
+    totalVolume: number;
+    caloriesBurned: number;
+  } | null>(null);
+
   // Track completed sets for each exercise
   const [setLogs, setSetLogs] = useState<Record<string, SetLog[]>>({});
+
+  // Save workout to database on mount
+  useEffect(() => {
+    const initWorkout = async () => {
+      if (workoutId) return; // Already saved
+
+      setIsSaving(true);
+      try {
+        const result = await saveWorkout({
+          userId,
+          generatedWorkout: workout,
+          userWeightKg,
+        });
+        setWorkoutId(result.workoutId);
+        setWorkoutExerciseIds(result.workoutExerciseIds);
+      } catch (error) {
+        console.error("Failed to save workout:", error);
+        alert("Failed to save workout. Progress may not be tracked.");
+      } finally {
+        setIsSaving(false);
+      }
+    };
+
+    initWorkout();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Get current exercises based on section
   const getCurrentExercises = (): GeneratedWorkoutExercise[] => {
@@ -109,8 +160,8 @@ export default function ActiveWorkoutTracker({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleCompleteSet = () => {
-    if (!currentExercise) return;
+  const handleCompleteSet = async () => {
+    if (!currentExercise || !workoutId) return;
 
     const key = `${currentSection}-${currentExerciseIndex}`;
     const exerciseLogs = setLogs[key] || [];
@@ -125,12 +176,29 @@ export default function ActiveWorkoutTracker({
 
     setSetLogs({ ...setLogs, [key]: updatedLogs });
 
+    // Log to database
+    const workoutExerciseId =
+      workoutExerciseIds[currentExercise.order_index.toString()];
+
+    if (workoutExerciseId) {
+      try {
+        await logWorkoutSet({
+          workoutExerciseId,
+          setNumber: currentSet,
+          repsCompleted: currentExercise.target_reps,
+          durationSeconds: currentExercise.target_duration_seconds,
+          difficultyRating: 3, // Could add UI for this later
+        });
+      } catch (error) {
+        console.error("Failed to log set:", error);
+        // Continue anyway - don't block user
+      }
+    }
+
     // Check if all sets completed
     if (currentSet >= currentExercise.sets) {
-      // Move to next exercise
       moveToNextExercise();
     } else {
-      // Start rest timer
       setCurrentSet(currentSet + 1);
       setIsResting(true);
       setRestTimeRemaining(currentExercise.rest_seconds);
@@ -139,7 +207,6 @@ export default function ActiveWorkoutTracker({
 
   const moveToNextExercise = () => {
     if (currentExerciseIndex < currentExercises.length - 1) {
-      // Next exercise in same section
       setCurrentExerciseIndex(currentExerciseIndex + 1);
       setCurrentSet(1);
       setIsResting(false);
@@ -156,9 +223,34 @@ export default function ActiveWorkoutTracker({
         setCurrentSet(1);
         setIsResting(false);
       } else {
-        // Workout complete!
-        onComplete();
+        handleWorkoutComplete();
       }
+    }
+  };
+
+  const handleWorkoutComplete = async () => {
+    if (!workoutId) {
+      onComplete();
+      return;
+    }
+
+    setIsCompleting(true);
+    try {
+      const result = await completeWorkout({
+        workoutId,
+        userId,
+      });
+
+      setCompletionData({
+        newPRs: result.new_personal_records,
+        totalVolume: result.total_volume,
+        caloriesBurned: result.calories_burned,
+      });
+    } catch (error) {
+      console.error("Failed to complete workout:", error);
+      onComplete(); // Complete anyway
+    } finally {
+      setIsCompleting(false);
     }
   };
 
@@ -171,18 +263,89 @@ export default function ActiveWorkoutTracker({
     moveToNextExercise();
   };
 
+  // Show completion modal with PRs
+  if (completionData) {
+    return (
+      <div className="space-y-6 max-w-2xl mx-auto text-center">
+        <div className="border-4 border-teal-400 p-8 bg-black">
+          <h2 className="text-4xl font-mono font-bold text-teal-400 mb-6">
+            Workout Complete! 🎉
+          </h2>
+
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="border-2 border-white p-4">
+              <p className="text-xs text-gray-400 font-mono">Time</p>
+              <p className="text-3xl font-mono text-white">
+                {formatTime(elapsedTime)}
+              </p>
+            </div>
+            <div className="border-2 border-white p-4">
+              <p className="text-xs text-gray-400 font-mono">Calories</p>
+              <p className="text-3xl font-mono text-teal-400">
+                {completionData.caloriesBurned}
+              </p>
+            </div>
+          </div>
+
+          {completionData.totalVolume > 0 && (
+            <div className="border-2 border-white p-4 mb-6">
+              <p className="text-xs text-gray-400 font-mono">Total Volume</p>
+              <p className="text-3xl font-mono text-white">
+                {completionData.totalVolume} kg
+              </p>
+            </div>
+          )}
+
+          {completionData.newPRs.length > 0 && (
+            <div className="border-4 border-yellow-400 p-6 mb-6 bg-yellow-400/10">
+              <p className="text-2xl font-mono font-bold text-yellow-400 mb-4">
+                🏆 New Personal Records!
+              </p>
+              <div className="space-y-2">
+                {completionData.newPRs.map((pr) => (
+                  <div
+                    key={pr.id}
+                    className="text-left border-2 border-yellow-400 p-3"
+                  >
+                    <p className="font-mono text-white font-bold">
+                      {pr.exercise?.name}
+                    </p>
+                    <p className="text-sm text-gray-300 font-sans">
+                      {pr.record_type.replace("_", " ")}: {pr.value}
+                      {pr.record_type === "max_weight" ? " kg" : ""}
+                      {pr.record_type === "max_duration" ? "s" : ""}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={onComplete}
+            className="w-full active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-6 text-white font-mono text-xl bg-black border-2 border-white cursor-pointer select-none"
+          >
+            Finish
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!currentExercise) {
     return (
       <div className="text-center py-12">
         <p className="text-2xl font-mono text-teal-400 mb-4">
-          Workout Complete! 🎉
+          {isCompleting ? "Saving workout..." : "Workout Complete! 🎉"}
         </p>
-        <button
-          onClick={onComplete}
-          className="w-fit active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-6 text-white font-mono text-xl bg-black border-2 border-white cursor-pointer select-none"
-        >
-          Finish
-        </button>
+      </div>
+    );
+  }
+
+  if (isSaving) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-2xl font-mono text-teal-400">Starting workout...</p>
       </div>
     );
   }
@@ -228,7 +391,7 @@ export default function ActiveWorkoutTracker({
         </div>
       </div>
 
-      {/* Rest Timer (if resting) */}
+      {/* Rest Timer */}
       {isResting && (
         <div className="border-4 border-teal-400 p-8 text-center bg-black">
           <p className="text-xl font-mono text-teal-400 mb-4">Rest Time</p>
@@ -244,7 +407,7 @@ export default function ActiveWorkoutTracker({
         </div>
       )}
 
-      {/* Current Exercise (if not resting) */}
+      {/* Current Exercise */}
       {!isResting && (
         <div className="border-2 border-teal-400 p-6">
           <div className="mb-4">
@@ -288,11 +451,10 @@ export default function ActiveWorkoutTracker({
             </div>
           )}
 
-          {/* Section Indicators - Shows all three workout phases */}
+          {/* Section Indicators */}
           <div className="mb-6 space-y-2">
             <p className="text-xs font-mono text-gray-400">Workout Progress:</p>
             <div className="flex gap-2">
-              {/* Warmup Section */}
               <div className="flex-1 space-y-1">
                 <p className="text-xs font-mono text-gray-400">🔥 Warmup</p>
                 <div
@@ -305,8 +467,6 @@ export default function ActiveWorkoutTracker({
                   }`}
                 />
               </div>
-
-              {/* Main Work Section */}
               <div className="flex-1 space-y-1">
                 <p className="text-xs font-mono text-gray-400">💪 Main</p>
                 <div
@@ -322,8 +482,6 @@ export default function ActiveWorkoutTracker({
                   }`}
                 />
               </div>
-
-              {/* Cooldown Section */}
               <div className="flex-1 space-y-1">
                 <p className="text-xs font-mono text-gray-400">🧘 Cooldown</p>
                 <div
@@ -337,7 +495,7 @@ export default function ActiveWorkoutTracker({
             </div>
           </div>
 
-          {/* Set Indicators - Current exercise sets */}
+          {/* Set Indicators */}
           <div className="mb-6">
             <p className="text-xs font-mono text-gray-400 mb-2">
               Current Exercise Sets:
@@ -362,7 +520,7 @@ export default function ActiveWorkoutTracker({
           <div className="flex gap-4">
             <button
               onClick={handleCompleteSet}
-              className="px-6 py-4 bg-transparent hover:bg-gray-800 text-white font-mono text-sm transition-colors border-2 border-teal-400 hover:border-gray-500"
+              className="flex-1 px-6 py-4 bg-transparent hover:bg-gray-800 text-white font-mono text-sm transition-colors border-2 border-teal-400 hover:border-gray-500"
             >
               ✓ Complete Set
             </button>
