@@ -6,6 +6,7 @@ import { supabase } from "../lib/supabase";
 import { deleteCurrentUser } from "../services/user";
 import ExerciseLibrary from "./ExerciseLibrary";
 import WorkoutGenerator from "./WorkoutGenerator";
+import UserProfileSettings from "./UserProfileSettings";
 
 interface DashboardProps {
   user: User;
@@ -90,6 +91,9 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
             <h2 className="text-2xl md:text-3xl font-bold mb-4 font-mono">
               Settings
             </h2>
+
+            {/* User Profile Settings */}
+            <UserProfileSettings userId={user.id} />
 
             <div className="space-y-4">
               <div className="border-2 border-white p-4">
