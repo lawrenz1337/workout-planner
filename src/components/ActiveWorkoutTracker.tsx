@@ -13,6 +13,7 @@ import {
   completeWorkout,
 } from "../services/workoutService";
 import { PersonalRecord } from "../types/enhanced-types";
+import { formatTime } from "../utils/time-formatter";
 
 interface ActiveWorkoutTrackerProps {
   workout: GeneratedWorkout;
@@ -147,12 +148,6 @@ export default function ActiveWorkoutTracker({
 
     return () => clearInterval(interval);
   }, [isResting, isPaused, restTimeRemaining]);
-
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
 
   const handleCompleteSet = async () => {
     if (!currentExercise || !workoutId) return;

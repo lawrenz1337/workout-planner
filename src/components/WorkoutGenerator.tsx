@@ -17,6 +17,7 @@ import {
   getEquipmentDisplayName,
 } from "../types/exercise";
 import { useExercises } from "../hooks/useExercises";
+import { EQUIPMENT_OPTIONS } from "../constants";
 import ActiveWorkoutTracker from "./ActiveWorkoutTracker";
 
 interface WorkoutGeneratorProps {
@@ -62,18 +63,7 @@ export default function WorkoutGenerator({
     ExerciseCategory.MOBILITY,
   ];
 
-  const equipmentOptions: Equipment[] = [
-    Equipment.BODYWEIGHT_ONLY,
-    Equipment.PULL_UP_BAR,
-    Equipment.PARALLETTES,
-    Equipment.DIP_BARS,
-    Equipment.RINGS,
-    Equipment.RESISTANCE_BANDS,
-    Equipment.WALL,
-    Equipment.BENCH,
-    Equipment.AB_ROLLER,
-    Equipment.JUMP_ROPE,
-  ];
+  // Equipment options imported from constants
 
   const toggleDifficulty = (diff: ExerciseDifficulty) => {
     setDifficulty((prev) =>
@@ -357,7 +347,7 @@ export default function WorkoutGenerator({
           Available Equipment
         </label>
         <div className="flex flex-wrap gap-2">
-          {equipmentOptions.map((equip) => (
+          {EQUIPMENT_OPTIONS.map((equip) => (
             <button
               key={equip}
               onClick={() => toggleEquipment(equip)}

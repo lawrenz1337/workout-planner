@@ -10,6 +10,9 @@ import {
 } from "../types/enhanced-types";
 import { getEquipmentDisplayName } from "../types/exercise";
 import { useUserPreferences } from "../hooks/useUserPreferences";
+import { calculateBMR, calculateTDEE } from "../utils/calorie-calculator";
+import { EQUIPMENT_OPTIONS, ACTIVITY_LEVEL_LABELS } from "../constants";
+import { Button } from "./ui/Button";
 
 interface UserProfileSettingsProps {
   userId: string;
@@ -35,22 +38,7 @@ export default function UserProfileSettings({
   const [defaultWorkoutDuration, setDefaultWorkoutDuration] = useState(30);
   const [defaultRest, setDefaultRest] = useState(60);
 
-  const equipmentOptions: Equipment[] = [
-    Equipment.BODYWEIGHT_ONLY,
-    Equipment.PULL_UP_BAR,
-    Equipment.PARALLETTES,
-    Equipment.DIP_BARS,
-    Equipment.RINGS,
-    Equipment.RESISTANCE_BANDS,
-    Equipment.WALL,
-    Equipment.BENCH,
-    Equipment.AB_ROLLER,
-    Equipment.JUMP_ROPE,
-    Equipment.YOGA_MAT,
-    Equipment.BARBELL,
-    Equipment.DUMBBELLS,
-    Equipment.KETTLEBELL,
-  ];
+  // Equipment options imported from constants
 
   const { preferences, loading, refetch } = useUserPreferences(userId);
 
@@ -62,7 +50,7 @@ export default function UserProfileSettings({
       setSex(preferences.sex);
       setActivityLevel(preferences.activity_level || "moderate");
       setSelectedEquipment(
-        preferences.available_equipment || [Equipment.BODYWEIGHT_ONLY]
+        preferences.available_equipment || [Equipment.BODYWEIGHT_ONLY],
       );
       setDefaultDifficulty(preferences.difficulty_level);
       setDefaultWorkoutDuration(preferences.default_workout_duration);
@@ -72,36 +60,17 @@ export default function UserProfileSettings({
 
   const toggleEquipment = (equip: Equipment) => {
     setSelectedEquipment((prev) =>
-      prev.includes(equip) ? prev.filter((e) => e !== equip) : [...prev, equip]
+      prev.includes(equip) ? prev.filter((e) => e !== equip) : [...prev, equip],
     );
   };
 
-  const calculateBMR = (): number | null => {
-    if (!weightKg || !heightCm || !age || !sex) return null;
+  // Calculate BMR and TDEE using utility functions
+  const bmrValue =
+    weightKg && heightCm && age && sex
+      ? calculateBMR({ weightKg, heightCm, age, sex })
+      : null;
 
-    // Mifflin-St Jeor Equation
-    const bmr =
-      sex === "male"
-        ? 10 * weightKg + 6.25 * heightCm - 5 * age + 5
-        : 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
-
-    return Math.round(bmr);
-  };
-
-  const calculateTDEE = (): number | null => {
-    const bmr = calculateBMR();
-    if (!bmr) return null;
-
-    const activityMultipliers: Record<ActivityLevel, number> = {
-      sedentary: 1.2,
-      light: 1.375,
-      moderate: 1.55,
-      very_active: 1.725,
-      extra_active: 1.9,
-    };
-
-    return Math.round(bmr * activityMultipliers[activityLevel]);
-  };
+  const tdeeValue = bmrValue ? calculateTDEE(bmrValue, activityLevel) : null;
 
   const handleSave = async () => {
     setSaving(true);
@@ -147,9 +116,6 @@ export default function UserProfileSettings({
       </div>
     );
   }
-
-  const bmr = calculateBMR();
-  const tdee = calculateTDEE();
 
   return (
     <div className="space-y-6">
@@ -240,18 +206,18 @@ export default function UserProfileSettings({
             onChange={(e) => setActivityLevel(e.target.value as ActivityLevel)}
             className="w-full bg-black text-white border-2 border-white px-4 py-2 font-mono focus:border-teal-400 focus:outline-none"
           >
-            <option value="sedentary">Sedentary (little/no exercise)</option>
-            <option value="light">Light (1-3 days/week)</option>
-            <option value="moderate">Moderate (3-5 days/week)</option>
-            <option value="very_active">Very Active (6-7 days/week)</option>
-            <option value="extra_active">
-              Extra Active (athlete/physical job)
-            </option>
+            {(Object.keys(ACTIVITY_LEVEL_LABELS) as ActivityLevel[]).map(
+              (level) => (
+                <option key={level} value={level}>
+                  {ACTIVITY_LEVEL_LABELS[level]}
+                </option>
+              ),
+            )}
           </select>
         </div>
 
         {/* Calorie Calculations */}
-        {bmr && tdee && (
+        {bmrValue && tdeeValue && (
           <div className="mt-6 p-4 bg-black border-2 border-teal-400">
             <p className="text-sm font-mono text-gray-400 mb-2">
               Your Daily Estimates:
@@ -259,14 +225,14 @@ export default function UserProfileSettings({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-gray-400 font-mono">BMR</p>
-                <p className="text-2xl font-mono text-white">{bmr}</p>
+                <p className="text-2xl font-mono text-white">{bmrValue}</p>
                 <p className="text-xs text-gray-400 font-sans">
                   calories/day at rest
                 </p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 font-mono">TDEE</p>
-                <p className="text-2xl font-mono text-teal-400">{tdee}</p>
+                <p className="text-2xl font-mono text-teal-400">{tdeeValue}</p>
                 <p className="text-xs text-gray-400 font-sans">
                   total calories/day
                 </p>
@@ -375,7 +341,7 @@ export default function UserProfileSettings({
         </p>
 
         <div className="flex flex-wrap gap-2">
-          {equipmentOptions.map((equip) => (
+          {EQUIPMENT_OPTIONS.map((equip) => (
             <button
               key={equip}
               onClick={() => toggleEquipment(equip)}
@@ -393,13 +359,14 @@ export default function UserProfileSettings({
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <button
+        <Button
           onClick={handleSave}
           disabled={saving}
-          className="w-full md:w-auto active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-8 text-white font-mono text-lg bg-black border-2 border-white cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed"
+          variant="primary"
+          className="w-full md:w-auto text-lg py-3 px-8"
         >
           {saving ? "Saving..." : "Save Settings"}
-        </button>
+        </Button>
       </div>
     </div>
   );
