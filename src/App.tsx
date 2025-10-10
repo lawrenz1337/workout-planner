@@ -15,8 +15,20 @@ import ProgressPage from "./pages/ProgressPage";
 import SettingsPage from "./pages/SettingsPage";
 
 const handleSignOut = async () => {
-  const { error } = await supabase.auth.signOut();
-  if (error) console.error("Error signing out:", error.message);
+  try {
+    const { error } = await supabase.auth.signOut();
+
+    // Ignore session_not_found errors - session is already invalid
+    if (
+      error &&
+      error.message !== "Session from session_id claim in JWT does not exist"
+    ) {
+      console.error("Error signing out:", error.message);
+    }
+  } catch (err) {
+    // Even if signout fails, we'll let the auth state change handle cleanup
+    console.error("Unexpected error during sign out:", err);
+  }
 };
 
 function App() {
