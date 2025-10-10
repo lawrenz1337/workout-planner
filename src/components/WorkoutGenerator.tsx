@@ -16,10 +16,12 @@ import {
   getEquipmentDisplayName,
 } from "../types/exercise";
 import { useExercises } from "../hooks/useExercises";
+import ActiveWorkoutTracker from "./ActiveWorkoutTracker";
 
 export default function WorkoutGenerator() {
   const [generatedWorkout, setGeneratedWorkout] =
     useState<GeneratedWorkout | null>(null);
+  const [isWorkoutActive, setIsWorkoutActive] = useState(false);
 
   // Form state
   const [duration, setDuration] = useState(30);
@@ -70,6 +72,10 @@ export default function WorkoutGenerator() {
     );
   };
 
+  const handleStartWorkout = () => {
+    setIsWorkoutActive(true);
+  };
+
   const toggleEquipment = (equip: Equipment) => {
     setEquipment((prev) =>
       prev.includes(equip) ? prev.filter((e) => e !== equip) : [...prev, equip],
@@ -108,12 +114,35 @@ export default function WorkoutGenerator() {
     }
   };
 
+  if (isWorkoutActive && generatedWorkout) {
+    return (
+      <ActiveWorkoutTracker
+        workout={generatedWorkout}
+        onComplete={() => {
+          setIsWorkoutActive(false);
+          setGeneratedWorkout(null);
+          alert("Workout completed! Great job! 💪");
+        }}
+        onExit={() => {
+          if (
+            confirm(
+              "Are you sure you want to exit? Your progress will be lost.",
+            )
+          ) {
+            setIsWorkoutActive(false);
+          }
+        }}
+      />
+    );
+  }
+
   if (generatedWorkout) {
     return (
       <WorkoutPreview
         workout={generatedWorkout}
         onBack={() => setGeneratedWorkout(null)}
         onRegenerate={handleGenerate}
+        handleStartWorkout={handleStartWorkout}
       />
     );
   }
@@ -278,12 +307,14 @@ interface WorkoutPreviewProps {
   workout: GeneratedWorkout;
   onBack: () => void;
   onRegenerate: () => void;
+  handleStartWorkout: () => void;
 }
 
 function WorkoutPreview({
   workout,
   onBack,
   onRegenerate,
+  handleStartWorkout,
 }: WorkoutPreviewProps) {
   return (
     <div className="space-y-6">
@@ -405,8 +436,11 @@ function WorkoutPreview({
         >
           ← Back
         </button>
-        <button className="flex-1 active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-6 text-white font-mono text-lg bg-black border-2 border-teal-400 cursor-pointer select-none">
-          💾 Save & Start
+        <button
+          onClick={handleStartWorkout}
+          className="flex-1 active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-6 text-white font-mono text-lg bg-black border-2 border-teal-400 cursor-pointer select-none"
+        >
+          🏃 Start Workout
         </button>
       </div>
     </div>
