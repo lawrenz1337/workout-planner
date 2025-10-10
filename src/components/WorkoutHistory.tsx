@@ -24,7 +24,7 @@ interface WorkoutHistoryProps {
 
 export default function WorkoutHistory({ userId }: WorkoutHistoryProps) {
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(
-    null,
+    null
   );
   const [showPRs, setShowPRs] = useState(false);
 
@@ -68,11 +68,11 @@ export default function WorkoutHistory({ userId }: WorkoutHistoryProps) {
         totalWorkouts: workouts.length,
         totalVolume: workouts.reduce(
           (sum, w) => sum + (w.total_volume || 0),
-          0,
+          0
         ),
         totalCalories: workouts.reduce(
           (sum, w) => sum + (w.calories_burned || 0),
-          0,
+          0
         ),
         totalMinutes: workouts.reduce((sum, w) => sum + w.duration_minutes, 0),
         streak: calculateStreak(workouts),
@@ -111,7 +111,7 @@ export default function WorkoutHistory({ userId }: WorkoutHistoryProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold mb-2 font-mono">
@@ -123,45 +123,45 @@ export default function WorkoutHistory({ userId }: WorkoutHistoryProps) {
         </div>
         <button
           onClick={() => setShowPRs(true)}
-          className="px-4 py-2 bg-transparent hover:bg-gray-800 text-yellow-400 font-mono text-sm transition-colors border-2 border-yellow-400 hover:border-yellow-300"
+          className="px-3 md:px-4 py-2 bg-transparent hover:bg-gray-800 text-yellow-400 font-mono text-xs md:text-sm transition-colors border md:border-2 border-yellow-400 hover:border-yellow-300"
         >
-          🏆 View PRs
+          🏆 PRs
         </button>
       </div>
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="border-2 border-white p-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+          <div className="border md:border-2 border-white p-3 md:p-4">
             <p className="text-xs text-gray-400 font-mono mb-1">
               Total Workouts
             </p>
-            <p className="text-3xl font-mono text-teal-400">
+            <p className="text-2xl md:text-3xl font-mono text-teal-400">
               {stats.totalWorkouts}
             </p>
           </div>
-          <div className="border-2 border-white p-4">
+          <div className="border md:border-2 border-white p-3 md:p-4">
             <p className="text-xs text-gray-400 font-mono mb-1">
               Current Streak
             </p>
-            <p className="text-3xl font-mono text-teal-400">
+            <p className="text-2xl md:text-3xl font-mono text-teal-400">
               {stats.streak.current_streak}
-              <span className="text-base ml-1">days</span>
+              <span className="text-sm md:text-base ml-1">days</span>
             </p>
           </div>
-          <div className="border-2 border-white p-4">
+          <div className="border md:border-2 border-white p-3 md:p-4">
             <p className="text-xs text-gray-400 font-mono mb-1">
               Total Calories
             </p>
-            <p className="text-3xl font-mono text-teal-400">
+            <p className="text-2xl md:text-3xl font-mono text-teal-400">
               {stats.totalCalories.toLocaleString()}
             </p>
           </div>
-          <div className="border-2 border-white p-4">
+          <div className="border md:border-2 border-white p-3 md:p-4">
             <p className="text-xs text-gray-400 font-mono mb-1">Total Time</p>
-            <p className="text-3xl font-mono text-teal-400">
+            <p className="text-2xl md:text-3xl font-mono text-teal-400">
               {Math.round(stats.totalMinutes / 60)}
-              <span className="text-base ml-1">hrs</span>
+              <span className="text-sm md:text-base ml-1">hrs</span>
             </p>
           </div>
         </div>
@@ -169,9 +169,9 @@ export default function WorkoutHistory({ userId }: WorkoutHistoryProps) {
 
       {/* Recent PRs */}
       {personalRecords && personalRecords.length > 0 && (
-        <div className="border-2 border-yellow-400 p-4 bg-yellow-400/5">
+        <div className="border md:border-2 border-yellow-400 p-3 md:p-4 bg-yellow-400/5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-bold font-mono text-yellow-400">
+            <h3 className="text-base md:text-lg font-bold font-mono text-yellow-400">
               🏆 Recent Personal Records
             </h3>
             <button
@@ -196,7 +196,7 @@ export default function WorkoutHistory({ userId }: WorkoutHistoryProps) {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-mono text-yellow-400 font-bold">
+                  <p className="font-mono text-yellow-400 font-bold text-sm md:text-base">
                     {pr.value}
                     {pr.record_type === "max_weight" && " kg"}
                     {pr.record_type === "max_duration" && "s"}
@@ -214,10 +214,12 @@ export default function WorkoutHistory({ userId }: WorkoutHistoryProps) {
 
       {/* Workout List */}
       <div>
-        <h3 className="text-lg font-bold mb-3 font-mono">Recent Workouts</h3>
+        <h3 className="text-base md:text-lg font-bold mb-3 font-mono">
+          Recent Workouts
+        </h3>
         {!workouts || workouts.length === 0 ? (
-          <div className="text-center py-12 border-2 border-dashed border-gray-600">
-            <p className="text-xl font-mono text-gray-400 mb-2">
+          <div className="text-center py-12 border md:border-2 border-dashed border-gray-600">
+            <p className="text-lg md:text-xl font-mono text-gray-400 mb-2">
               No workouts yet
             </p>
             <p className="text-sm text-gray-500 font-sans">
@@ -225,21 +227,21 @@ export default function WorkoutHistory({ userId }: WorkoutHistoryProps) {
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2 md:space-y-3">
             {workouts.map((workout) => (
               <button
                 key={workout.id}
                 onClick={() => setSelectedWorkoutId(workout.id)}
-                className="w-full border-2 border-white hover:border-teal-400 p-4 text-left transition-all group"
+                className="w-full border md:border-2 border-white hover:border-teal-400 p-3 md:p-4 text-left transition-all group"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
-                    <h4 className="font-mono font-bold text-white group-hover:text-teal-400 transition-colors">
+                    <h4 className="font-mono font-bold text-white group-hover:text-teal-400 transition-colors text-sm md:text-base">
                       {workout.name}
                     </h4>
                     <p className="text-xs text-gray-400 font-mono mt-1">
                       {new Date(
-                        workout.completed_at || workout.date,
+                        workout.completed_at || workout.date
                       ).toLocaleDateString("en-US", {
                         weekday: "short",
                         month: "short",
@@ -252,7 +254,7 @@ export default function WorkoutHistory({ userId }: WorkoutHistoryProps) {
                   </span>
                 </div>
 
-                <div className="flex gap-4 text-sm font-mono text-gray-400">
+                <div className="flex gap-2 md:gap-4 text-xs md:text-sm font-mono text-gray-400">
                   <span>⏱️ {workout.duration_minutes} min</span>
                   {workout.calories_burned && (
                     <span>🔥 {workout.calories_burned} cal</span>
@@ -278,13 +280,13 @@ interface WorkoutDetailsModalProps {
 
 function WorkoutDetailsModal({ workout, onClose }: WorkoutDetailsModalProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-2 font-mono">
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-2 font-mono">
             {workout.name}
           </h2>
-          <p className="text-gray-400 font-sans">
+          <p className="text-sm md:text-base text-gray-400 font-sans">
             {new Date(workout.completed_at || workout.date).toLocaleDateString(
               "en-US",
               {
@@ -292,45 +294,45 @@ function WorkoutDetailsModal({ workout, onClose }: WorkoutDetailsModalProps) {
                 month: "long",
                 day: "numeric",
                 year: "numeric",
-              },
+              }
             )}
           </p>
         </div>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-white text-2xl"
+          className="text-gray-400 hover:text-white text-xl md:text-2xl"
         >
           ✕
         </button>
       </div>
 
       {/* Workout Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="border-2 border-white p-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+        <div className="border md:border-2 border-white p-2 md:p-3">
           <p className="text-xs text-gray-400 font-mono">Duration</p>
-          <p className="text-2xl font-mono text-white">
+          <p className="text-xl md:text-2xl font-mono text-white">
             {workout.duration_minutes} min
           </p>
         </div>
         {workout.calories_burned && (
-          <div className="border-2 border-white p-3">
+          <div className="border md:border-2 border-white p-2 md:p-3">
             <p className="text-xs text-gray-400 font-mono">Calories</p>
-            <p className="text-2xl font-mono text-teal-400">
+            <p className="text-xl md:text-2xl font-mono text-teal-400">
               {workout.calories_burned}
             </p>
           </div>
         )}
         {workout.total_volume > 0 && (
-          <div className="border-2 border-white p-3">
+          <div className="border md:border-2 border-white p-2 md:p-3">
             <p className="text-xs text-gray-400 font-mono">Volume</p>
-            <p className="text-2xl font-mono text-teal-400">
+            <p className="text-xl md:text-2xl font-mono text-teal-400">
               {formatVolume(workout.total_volume)}
             </p>
           </div>
         )}
-        <div className="border-2 border-white p-3">
+        <div className="border md:border-2 border-white p-2 md:p-3">
           <p className="text-xs text-gray-400 font-mono">Exercises</p>
-          <p className="text-2xl font-mono text-white">
+          <p className="text-xl md:text-2xl font-mono text-white">
             {workout.exercises?.length || 0}
           </p>
         </div>
@@ -338,15 +340,18 @@ function WorkoutDetailsModal({ workout, onClose }: WorkoutDetailsModalProps) {
 
       {/* Exercise List */}
       <div>
-        <h3 className="text-lg font-bold mb-3 font-mono text-teal-400">
+        <h3 className="text-base md:text-lg font-bold mb-3 font-mono text-teal-400">
           Exercises Completed
         </h3>
-        <div className="space-y-3">
+        <div className="space-y-2 md:space-y-3">
           {workout.exercises?.map((we: WorkoutExerciseWithLogs) => (
-            <div key={we.id} className="border-2 border-white p-4">
+            <div
+              key={we.id}
+              className="border md:border-2 border-white p-3 md:p-4"
+            >
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <h4 className="font-mono font-bold text-white">
+                  <h4 className="font-mono font-bold text-white text-sm md:text-base">
                     {we.exercise.name}
                   </h4>
                   <p className="text-xs text-gray-400 font-sans">
@@ -364,7 +369,7 @@ function WorkoutDetailsModal({ workout, onClose }: WorkoutDetailsModalProps) {
                 {we.logs.map((log: EnhancedWorkoutLog, idx: number) => (
                   <div
                     key={log.id}
-                    className="flex items-center gap-4 text-sm font-mono bg-black/50 p-2 border border-gray-700"
+                    className="flex items-center gap-2 md:gap-4 text-xs md:text-sm font-mono bg-black/50 p-2 border border-gray-700"
                   >
                     <span className="text-teal-400">Set {idx + 1}</span>
                     {log.reps_completed && (
@@ -396,7 +401,7 @@ function WorkoutDetailsModal({ workout, onClose }: WorkoutDetailsModalProps) {
       {/* Back Button */}
       <button
         onClick={onClose}
-        className="w-full active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-2 px-4 text-white font-mono text-lg bg-black border-2 border-white cursor-pointer select-none"
+        className="w-full active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-2 px-4 text-white font-mono text-base md:text-lg bg-black border-2 border-white cursor-pointer select-none"
       >
         ← Back to History
       </button>
@@ -426,7 +431,7 @@ function PersonalRecordsView({
       acc[exerciseName].push(pr);
       return acc;
     },
-    {} as Record<string, PersonalRecord[]>,
+    {} as Record<string, PersonalRecord[]>
   );
 
   if (loading) {
@@ -438,7 +443,7 @@ function PersonalRecordsView({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold mb-2 font-mono text-yellow-400">
@@ -450,15 +455,15 @@ function PersonalRecordsView({
         </div>
         <button
           onClick={onBack}
-          className="text-gray-400 hover:text-white text-2xl"
+          className="text-gray-400 hover:text-white text-xl md:text-2xl"
         >
           ✕
         </button>
       </div>
 
       {personalRecords.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed border-gray-600">
-          <p className="text-xl font-mono text-gray-400 mb-2">
+        <div className="text-center py-12 border md:border-2 border-dashed border-gray-600">
+          <p className="text-lg md:text-xl font-mono text-gray-400 mb-2">
             No personal records yet
           </p>
           <p className="text-sm text-gray-500 font-sans">
@@ -466,22 +471,25 @@ function PersonalRecordsView({
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
           {Object.entries(prsByExercise).map(([exerciseName, prs]) => (
-            <div key={exerciseName} className="border-2 border-yellow-400 p-4">
-              <h3 className="font-mono font-bold text-white text-lg mb-3">
+            <div
+              key={exerciseName}
+              className="border md:border-2 border-yellow-400 p-3 md:p-4"
+            >
+              <h3 className="font-mono font-bold text-white text-base md:text-lg mb-3">
                 {exerciseName}
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
                 {prs.map((pr) => (
                   <div
                     key={pr.id}
-                    className="bg-yellow-400/10 border border-yellow-400 p-3"
+                    className="bg-yellow-400/10 border border-yellow-400 p-2 md:p-3"
                   >
                     <p className="text-xs text-gray-400 font-mono mb-1">
                       {pr.record_type.replace("_", " ").toUpperCase()}
                     </p>
-                    <p className="text-2xl font-mono text-yellow-400 font-bold">
+                    <p className="text-xl md:text-2xl font-mono text-yellow-400 font-bold">
                       {pr.value}
                       {pr.record_type === "max_weight" && " kg"}
                       {pr.record_type === "max_duration" && "s"}
@@ -500,7 +508,7 @@ function PersonalRecordsView({
 
       <button
         onClick={onBack}
-        className="w-full active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-2 px-4 text-white font-mono text-lg bg-black border-2 border-white cursor-pointer select-none"
+        className="w-full active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-2 px-4 text-white font-mono text-base md:text-lg bg-black border-2 border-white cursor-pointer select-none"
       >
         ← Back to History
       </button>

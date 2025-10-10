@@ -42,8 +42,6 @@ export default function UserProfileSettings({
   const [defaultWorkoutDuration, setDefaultWorkoutDuration] = useState(30);
   const [defaultRest, setDefaultRest] = useState(60);
 
-  // Equipment options imported from constants
-
   const { preferences, loading, refetch } = useUserPreferences(userId);
 
   useEffect(() => {
@@ -54,7 +52,7 @@ export default function UserProfileSettings({
       setSex(preferences.sex);
       setActivityLevel(preferences.activity_level || "moderate");
       setSelectedEquipment(
-        preferences.available_equipment || [Equipment.BODYWEIGHT_ONLY],
+        preferences.available_equipment || [Equipment.BODYWEIGHT_ONLY]
       );
       setDefaultDifficulty(preferences.difficulty_level);
       setDefaultWorkoutDuration(preferences.default_workout_duration);
@@ -64,7 +62,7 @@ export default function UserProfileSettings({
 
   const toggleEquipment = (equip: Equipment) => {
     setSelectedEquipment((prev) =>
-      prev.includes(equip) ? prev.filter((e) => e !== equip) : [...prev, equip],
+      prev.includes(equip) ? prev.filter((e) => e !== equip) : [...prev, equip]
     );
   };
 
@@ -125,24 +123,24 @@ export default function UserProfileSettings({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Success Message */}
       {successMessage && (
-        <div className="bg-teal-400 text-black px-4 py-3 font-mono">
+        <div className="bg-teal-400 text-black px-3 md:px-4 py-2 md:py-3 font-mono text-sm md:text-base">
           {successMessage}
         </div>
       )}
 
       {/* Body Metrics Section */}
-      <div className="border-2 border-white p-6">
-        <h3 className="text-xl font-bold mb-4 font-mono text-teal-400">
+      <div className="border md:border-2 border-white p-3 md:p-6">
+        <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 font-mono text-teal-400">
           Body Metrics
         </h3>
-        <p className="text-sm text-gray-400 mb-6 font-sans">
+        <p className="text-sm text-gray-400 mb-4 md:mb-6 font-sans">
           Used for accurate calorie calculations during workouts
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           {/* Weight */}
           <div>
             <label className="block text-sm font-mono text-gray-400 mb-2">
@@ -153,7 +151,7 @@ export default function UserProfileSettings({
               value={weightKg || ""}
               onChange={(e) => setWeightKg(Number(e.target.value) || undefined)}
               placeholder="70"
-              className="w-full bg-black text-white border-2 border-white px-4 py-2 font-mono focus:border-teal-400 focus:outline-none"
+              className="w-full bg-black text-white border md:border-2 border-white px-3 md:px-4 py-2 font-mono focus:border-teal-400 focus:outline-none text-sm md:text-base"
             />
           </div>
 
@@ -167,7 +165,7 @@ export default function UserProfileSettings({
               value={heightCm || ""}
               onChange={(e) => setHeightCm(Number(e.target.value) || undefined)}
               placeholder="175"
-              className="w-full bg-black text-white border-2 border-white px-4 py-2 font-mono focus:border-teal-400 focus:outline-none"
+              className="w-full bg-black text-white border md:border-2 border-white px-3 md:px-4 py-2 font-mono focus:border-teal-400 focus:outline-none text-sm md:text-base"
             />
           </div>
 
@@ -181,7 +179,7 @@ export default function UserProfileSettings({
               value={age || ""}
               onChange={(e) => setAge(Number(e.target.value) || undefined)}
               placeholder="25"
-              className="w-full bg-black text-white border-2 border-white px-4 py-2 font-mono focus:border-teal-400 focus:outline-none"
+              className="w-full bg-black text-white border md:border-2 border-white px-3 md:px-4 py-2 font-mono focus:border-teal-400 focus:outline-none text-sm md:text-base"
             />
           </div>
 
@@ -193,7 +191,7 @@ export default function UserProfileSettings({
             <select
               value={sex || ""}
               onChange={(e) => setSex(e.target.value as Sex)}
-              className="w-full bg-black text-white border-2 border-white px-4 py-2 font-mono focus:border-teal-400 focus:outline-none"
+              className="w-full bg-black text-white border md:border-2 border-white px-3 md:px-4 py-2 font-mono focus:border-teal-400 focus:outline-none text-sm md:text-base"
             >
               <option value="">Select...</option>
               <option value="male">Male</option>
@@ -204,37 +202,37 @@ export default function UserProfileSettings({
         </div>
 
         {/* Activity Level */}
-        <div className="mt-4">
+        <div className="mt-3 md:mt-4">
           <label className="block text-sm font-mono text-gray-400 mb-2">
             Activity Level (outside of workouts)
           </label>
           <select
             value={activityLevel}
             onChange={(e) => setActivityLevel(e.target.value as ActivityLevel)}
-            className="w-full bg-black text-white border-2 border-white px-4 py-2 font-mono focus:border-teal-400 focus:outline-none"
+            className="w-full bg-black text-white border md:border-2 border-white px-3 md:px-4 py-2 font-mono focus:border-teal-400 focus:outline-none text-sm md:text-base"
           >
             {(Object.keys(ACTIVITY_LEVEL_LABELS) as ActivityLevel[]).map(
               (level) => (
                 <option key={level} value={level}>
                   {ACTIVITY_LEVEL_LABELS[level]}
                 </option>
-              ),
+              )
             )}
           </select>
         </div>
 
         {/* Health Metrics */}
         {(bmrValue || bmiResult) && (
-          <div className="mt-6 p-4 bg-black border-2 border-teal-400">
-            <p className="text-sm font-mono text-gray-400 mb-4">
+          <div className="mt-4 md:mt-6 p-3 md:p-4 bg-black border md:border-2 border-teal-400">
+            <p className="text-sm font-mono text-gray-400 mb-3 md:mb-4">
               Your Health Metrics:
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
               {/* BMI */}
               {bmiResult && (
                 <div>
                   <p className="text-xs text-gray-400 font-mono">BMI</p>
-                  <p className="text-2xl font-mono text-white">
+                  <p className="text-xl md:text-2xl font-mono text-white">
                     {bmiResult.bmi}
                   </p>
                   <p className="text-xs font-sans mt-1">
@@ -259,7 +257,9 @@ export default function UserProfileSettings({
               {bmrValue && (
                 <div>
                   <p className="text-xs text-gray-400 font-mono">BMR</p>
-                  <p className="text-2xl font-mono text-white">{bmrValue}</p>
+                  <p className="text-xl md:text-2xl font-mono text-white">
+                    {bmrValue}
+                  </p>
                   <p className="text-xs text-gray-400 font-sans">
                     calories/day at rest
                   </p>
@@ -270,7 +270,7 @@ export default function UserProfileSettings({
               {tdeeValue && (
                 <div>
                   <p className="text-xs text-gray-400 font-mono">TDEE</p>
-                  <p className="text-2xl font-mono text-teal-400">
+                  <p className="text-xl md:text-2xl font-mono text-teal-400">
                     {tdeeValue}
                   </p>
                   <p className="text-xs text-gray-400 font-sans">
@@ -284,20 +284,20 @@ export default function UserProfileSettings({
       </div>
 
       {/* Workout Preferences */}
-      <div className="border-2 border-white p-6">
-        <h3 className="text-xl font-bold mb-4 font-mono text-teal-400">
+      <div className="border md:border-2 border-white p-3 md:p-6">
+        <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 font-mono text-teal-400">
           Workout Preferences
         </h3>
 
         {/* Default Difficulty */}
-        <div className="mb-4">
+        <div className="mb-3 md:mb-4">
           <label className="block text-sm font-mono text-gray-400 mb-2">
             Default Difficulty Level
           </label>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setDefaultDifficulty(ExerciseDifficulty.BEGINNER)}
-              className={`px-4 py-2 font-mono text-sm transition-colors border-2 ${
+              className={`px-3 md:px-4 py-2 font-mono text-xs md:text-sm transition-colors border md:border-2 ${
                 defaultDifficulty === ExerciseDifficulty.BEGINNER
                   ? "bg-teal-400 text-black border-teal-400"
                   : "bg-black text-white border-white hover:border-teal-400"
@@ -309,7 +309,7 @@ export default function UserProfileSettings({
               onClick={() =>
                 setDefaultDifficulty(ExerciseDifficulty.INTERMEDIATE)
               }
-              className={`px-4 py-2 font-mono text-sm transition-colors border-2 ${
+              className={`px-3 md:px-4 py-2 font-mono text-xs md:text-sm transition-colors border md:border-2 ${
                 defaultDifficulty === ExerciseDifficulty.INTERMEDIATE
                   ? "bg-teal-400 text-black border-teal-400"
                   : "bg-black text-white border-white hover:border-teal-400"
@@ -319,7 +319,7 @@ export default function UserProfileSettings({
             </button>
             <button
               onClick={() => setDefaultDifficulty(ExerciseDifficulty.ADVANCED)}
-              className={`px-4 py-2 font-mono text-sm transition-colors border-2 ${
+              className={`px-3 md:px-4 py-2 font-mono text-xs md:text-sm transition-colors border md:border-2 ${
                 defaultDifficulty === ExerciseDifficulty.ADVANCED
                   ? "bg-teal-400 text-black border-teal-400"
                   : "bg-black text-white border-white hover:border-teal-400"
@@ -331,7 +331,7 @@ export default function UserProfileSettings({
         </div>
 
         {/* Default Workout Duration */}
-        <div className="mb-4">
+        <div className="mb-3 md:mb-4">
           <label className="block text-sm font-mono text-gray-400 mb-2">
             Default Workout Duration: {defaultWorkoutDuration} minutes
           </label>
@@ -351,7 +351,7 @@ export default function UserProfileSettings({
         </div>
 
         {/* Default Rest Time */}
-        <div className="mb-4">
+        <div className="mb-3 md:mb-4">
           <label className="block text-sm font-mono text-gray-400 mb-2">
             Default Rest Between Sets: {defaultRest} seconds
           </label>
@@ -372,11 +372,11 @@ export default function UserProfileSettings({
       </div>
 
       {/* Equipment */}
-      <div className="border-2 border-white p-6">
-        <h3 className="text-xl font-bold mb-4 font-mono text-teal-400">
+      <div className="border md:border-2 border-white p-3 md:p-6">
+        <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 font-mono text-teal-400">
           Available Equipment
         </h3>
-        <p className="text-sm text-gray-400 mb-4 font-sans">
+        <p className="text-sm text-gray-400 mb-3 md:mb-4 font-sans">
           Select all equipment you have access to. This will be used when
           generating workouts.
         </p>
@@ -386,7 +386,7 @@ export default function UserProfileSettings({
             <button
               key={equip}
               onClick={() => toggleEquipment(equip)}
-              className={`px-4 py-2 font-mono text-sm transition-colors border-2 ${
+              className={`px-3 md:px-4 py-2 font-mono text-xs md:text-sm transition-colors border md:border-2 ${
                 selectedEquipment.includes(equip)
                   ? "bg-teal-400 text-black border-teal-400"
                   : "bg-black text-white border-white hover:border-teal-400"
@@ -404,7 +404,7 @@ export default function UserProfileSettings({
           onClick={handleSave}
           disabled={saving}
           variant="primary"
-          className="w-full md:w-auto text-lg py-3 px-8"
+          className="w-full md:w-auto text-base md:text-lg py-2 md:py-3 px-6 md:px-8"
         >
           {saving ? "Saving..." : "Save Settings"}
         </Button>

@@ -44,9 +44,12 @@ export default function Layout({ user, onSignOut }: LayoutProps) {
     <div className="h-screen bg-black text-white flex overflow-hidden">
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-black border-b-2 border-white p-4 flex items-center justify-between z-40">
-        <span className="font-sans text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-text">
+        <Link
+          to="/dashboard"
+          className="font-sans text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-text hover:drop-shadow-whiteText hover:text-teal-400 transition-colors"
+        >
           workout_gen
-        </span>
+        </Link>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="text-teal-400 text-2xl"
@@ -73,7 +76,7 @@ export default function Layout({ user, onSignOut }: LayoutProps) {
         <div className="hidden lg:block p-6 border-b-2 border-white">
           <Link
             to="/dashboard"
-            className="font-sans text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-text"
+            className="font-sans text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-text hover:drop-shadow-whiteText hover:text-teal-400 transition-colors"
           >
             workout_gen
           </Link>
@@ -126,6 +129,7 @@ export default function Layout({ user, onSignOut }: LayoutProps) {
       {/* Main Content */}
       <main className="flex-1 p-4 md:p-8 pt-20 lg:pt-8 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
+          {/* Greeting Section */}
           <div className="mb-6 md:mb-8">
             <h1 className="text-3xl md:text-4xl font-mono font-bold mb-2">
               Hey,{" "}
@@ -139,9 +143,8 @@ export default function Layout({ user, onSignOut }: LayoutProps) {
             </p>
           </div>
 
-          <div className="bg-black p-4 md:p-6 border-2 border-white">
-            <Outlet />
-          </div>
+          {/* Page Content - Remove extra border and padding wrapper */}
+          <Outlet />
         </div>
       </main>
     </div>

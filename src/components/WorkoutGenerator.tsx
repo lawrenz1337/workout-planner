@@ -56,17 +56,12 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
   // Pre-fill form from user preferences
   useEffect(() => {
     if (preferences) {
-      // Set duration from preferences
       if (preferences.default_workout_duration) {
         setDuration(preferences.default_workout_duration);
       }
-
-      // Set difficulty from preferences
       if (preferences.difficulty_level) {
         setDifficulty([preferences.difficulty_level]);
       }
-
-      // Set equipment from preferences
       if (
         preferences.available_equipment &&
         preferences.available_equipment.length > 0
@@ -86,11 +81,9 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
     ExerciseCategory.MOBILITY,
   ];
 
-  // Equipment options imported from constants
-
   const toggleDifficulty = (diff: ExerciseDifficulty) => {
     setDifficulty((prev) =>
-      prev.includes(diff) ? prev.filter((d) => d !== diff) : [...prev, diff],
+      prev.includes(diff) ? prev.filter((d) => d !== diff) : [...prev, diff]
     );
   };
 
@@ -98,7 +91,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
     setSelectedCategories((prev) =>
       prev.includes(category)
         ? prev.filter((c) => c !== category)
-        : [...prev, category],
+        : [...prev, category]
     );
   };
 
@@ -110,7 +103,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
 
   const toggleEquipment = (equip: Equipment) => {
     setEquipment((prev) =>
-      prev.includes(equip) ? prev.filter((e) => e !== equip) : [...prev, equip],
+      prev.includes(equip) ? prev.filter((e) => e !== equip) : [...prev, equip]
     );
   };
 
@@ -134,7 +127,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
 
     try {
       const filteredExercises = exercises.filter((ex) =>
-        difficulty.includes(ex.difficulty),
+        difficulty.includes(ex.difficulty)
       );
 
       const options: WorkoutGenerationOptions = {
@@ -149,7 +142,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
 
       const workout = workoutGenerator.generateWorkout(
         filteredExercises,
-        options,
+        options
       );
       setGeneratedWorkout(workout);
       setWorkoutOptions(options);
@@ -161,7 +154,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
 
   const handleSubstituteExercise = (
     section: "warmup" | "main_work" | "cooldown",
-    index: number,
+    index: number
   ) => {
     if (!generatedWorkout || !workoutOptions) return;
 
@@ -178,7 +171,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
         return false;
       if (!difficulty.includes(ex.difficulty)) return false;
       const hasCompatibleEquipment = ex.equipment.some((eq) =>
-        workoutOptions.available_equipment.includes(eq),
+        workoutOptions.available_equipment.includes(eq)
       );
       if (!hasCompatibleEquipment) return false;
       return true;
@@ -233,7 +226,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
         <h2 className="text-2xl md:text-3xl font-bold mb-2 font-mono">
           Generate Workout
@@ -271,7 +264,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setWorkoutType(WorkoutType.HOME)}
-            className={`px-4 py-2 font-mono text-sm transition-colors border-2 ${
+            className={`px-3 md:px-4 py-2 font-mono text-sm transition-colors border md:border-2 ${
               workoutType === WorkoutType.HOME
                 ? "bg-teal-400 text-black border-teal-400"
                 : "bg-black text-white border-white hover:border-teal-400"
@@ -281,7 +274,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
           </button>
           <button
             onClick={() => setWorkoutType(WorkoutType.GYM)}
-            className={`px-4 py-2 font-mono text-sm transition-colors border-2 ${
+            className={`px-3 md:px-4 py-2 font-mono text-sm transition-colors border md:border-2 ${
               workoutType === WorkoutType.GYM
                 ? "bg-teal-400 text-black border-teal-400"
                 : "bg-black text-white border-white hover:border-teal-400"
@@ -300,7 +293,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => toggleDifficulty(ExerciseDifficulty.BEGINNER)}
-            className={`px-4 py-2 font-mono text-sm transition-colors border-2 ${
+            className={`px-3 md:px-4 py-2 font-mono text-sm transition-colors border md:border-2 ${
               difficulty.includes(ExerciseDifficulty.BEGINNER)
                 ? "bg-teal-400 text-black border-teal-400"
                 : "bg-black text-white border-white hover:border-teal-400"
@@ -310,7 +303,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
           </button>
           <button
             onClick={() => toggleDifficulty(ExerciseDifficulty.INTERMEDIATE)}
-            className={`px-4 py-2 font-mono text-sm transition-colors border-2 ${
+            className={`px-3 md:px-4 py-2 font-mono text-sm transition-colors border md:border-2 ${
               difficulty.includes(ExerciseDifficulty.INTERMEDIATE)
                 ? "bg-teal-400 text-black border-teal-400"
                 : "bg-black text-white border-white hover:border-teal-400"
@@ -320,7 +313,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
           </button>
           <button
             onClick={() => toggleDifficulty(ExerciseDifficulty.ADVANCED)}
-            className={`px-4 py-2 font-mono text-sm transition-colors border-2 ${
+            className={`px-3 md:px-4 py-2 font-mono text-sm transition-colors border md:border-2 ${
               difficulty.includes(ExerciseDifficulty.ADVANCED)
                 ? "bg-teal-400 text-black border-teal-400"
                 : "bg-black text-white border-white hover:border-teal-400"
@@ -341,7 +334,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
             <button
               key={cat}
               onClick={() => toggleCategory(cat)}
-              className={`px-4 py-2 font-mono text-sm transition-colors border-2 ${
+              className={`px-3 md:px-4 py-2 font-mono text-sm transition-colors border md:border-2 ${
                 selectedCategories.includes(cat)
                   ? "bg-teal-400 text-black border-teal-400"
                   : "bg-black text-white border-white hover:border-teal-400"
@@ -363,7 +356,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
             <button
               key={equip}
               onClick={() => toggleEquipment(equip)}
-              className={`px-4 py-2 font-mono text-sm transition-colors border-2 ${
+              className={`px-3 md:px-4 py-2 font-mono text-sm transition-colors border md:border-2 ${
                 equipment.includes(equip)
                   ? "bg-teal-400 text-black border-teal-400"
                   : "bg-black text-white border-white hover:border-teal-400"
@@ -379,7 +372,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
       <button
         onClick={handleGenerate}
         disabled={selectedCategories.length === 0 || difficulty.length === 0}
-        className="w-full active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-6 text-white font-mono text-xl bg-black border-2 border-white cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-6 text-white font-mono text-lg md:text-xl bg-black border-2 border-white cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed"
       >
         ✨ Generate Workout
       </button>
@@ -395,7 +388,7 @@ interface WorkoutPreviewProps {
   handleStartWorkout: () => void;
   onSubstitute: (
     section: "warmup" | "main_work" | "cooldown",
-    index: number,
+    index: number
   ) => void;
 }
 
@@ -407,7 +400,7 @@ function WorkoutPreview({
   onSubstitute,
 }: WorkoutPreviewProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -423,8 +416,8 @@ function WorkoutPreview({
 
       {/* Warmup */}
       {workout.warmup.length > 0 && (
-        <div className="border-2 border-white p-4">
-          <h3 className="text-xl font-bold mb-3 font-mono text-teal-400">
+        <div className="border md:border-2 border-white p-3 md:p-4">
+          <h3 className="text-lg md:text-xl font-bold mb-3 font-mono text-teal-400">
             Warmup (5 min)
           </h3>
           <div className="space-y-2">
@@ -434,13 +427,15 @@ function WorkoutPreview({
                 className="flex justify-between items-center border-b border-gray-700 pb-2"
               >
                 <div className="flex-1">
-                  <p className="font-mono text-white">{item.exercise.name}</p>
-                  <p className="text-sm text-gray-400 font-sans">
+                  <p className="font-mono text-white text-sm md:text-base">
+                    {item.exercise.name}
+                  </p>
+                  <p className="text-xs md:text-sm text-gray-400 font-sans">
                     {item.exercise.category.replace("_", " ")}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <p className="font-mono text-teal-400">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <p className="font-mono text-teal-400 text-sm md:text-base">
                     {item.target_duration_seconds}s
                   </p>
                   <button
@@ -458,19 +453,22 @@ function WorkoutPreview({
       )}
 
       {/* Main Work */}
-      <div className="border-2 border-teal-400 p-4">
-        <h3 className="text-xl font-bold mb-3 font-mono text-teal-400">
+      <div className="border md:border-2 border-teal-400 p-3 md:p-4">
+        <h3 className="text-lg md:text-xl font-bold mb-3 font-mono text-teal-400">
           Main Work
         </h3>
-        <div className="space-y-3">
+        <div className="space-y-2 md:space-y-3">
           {workout.main_work.map((item, index) => (
-            <div key={index} className="border-2 border-white p-3">
+            <div
+              key={index}
+              className="border md:border-2 border-white p-2 md:p-3"
+            >
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1">
-                  <p className="font-mono text-white font-bold">
+                  <p className="font-mono text-white font-bold text-sm md:text-base">
                     {item.exercise.name}
                   </p>
-                  <p className="text-sm text-gray-400 font-sans">
+                  <p className="text-xs md:text-sm text-gray-400 font-sans">
                     {item.exercise.category.replace("_", " ")}
                   </p>
                 </div>
@@ -487,7 +485,7 @@ function WorkoutPreview({
                   </button>
                 </div>
               </div>
-              <div className="flex gap-4 text-sm font-mono">
+              <div className="flex gap-2 md:gap-4 text-xs md:text-sm font-mono">
                 <span className="text-teal-400">{item.sets} sets</span>
                 <span className="text-gray-400">×</span>
                 <span className="text-white">
@@ -505,8 +503,8 @@ function WorkoutPreview({
 
       {/* Cooldown */}
       {workout.cooldown.length > 0 && (
-        <div className="border-2 border-white p-4">
-          <h3 className="text-xl font-bold mb-3 font-mono text-teal-400">
+        <div className="border md:border-2 border-white p-3 md:p-4">
+          <h3 className="text-lg md:text-xl font-bold mb-3 font-mono text-teal-400">
             Cooldown (5 min)
           </h3>
           <div className="space-y-2">
@@ -516,13 +514,15 @@ function WorkoutPreview({
                 className="flex justify-between items-center border-b border-gray-700 pb-2"
               >
                 <div className="flex-1">
-                  <p className="font-mono text-white">{item.exercise.name}</p>
-                  <p className="text-sm text-gray-400 font-sans">
+                  <p className="font-mono text-white text-sm md:text-base">
+                    {item.exercise.name}
+                  </p>
+                  <p className="text-xs md:text-sm text-gray-400 font-sans">
                     {item.exercise.category.replace("_", " ")}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <p className="font-mono text-teal-400">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <p className="font-mono text-teal-400 text-sm md:text-base">
                     {item.target_duration_seconds}s
                   </p>
                   <button
@@ -540,22 +540,22 @@ function WorkoutPreview({
       )}
 
       {/* Action Buttons */}
-      <div className="flex gap-4 flex-col sm:flex-row">
+      <div className="flex gap-2 md:gap-4 flex-col sm:flex-row">
         <button
           onClick={onRegenerate}
-          className="flex-1 active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-6 text-white font-mono text-lg bg-black border-2 border-white cursor-pointer select-none"
+          className="flex-1 active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-4 md:px-6 text-white font-mono text-base md:text-lg bg-black border-2 border-white cursor-pointer select-none"
         >
           🔄 Regenerate
         </button>
         <button
           onClick={onBack}
-          className="flex-1 active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-6 text-white font-mono text-lg bg-black border-2 border-white cursor-pointer select-none"
+          className="flex-1 active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-4 md:px-6 text-white font-mono text-base md:text-lg bg-black border-2 border-white cursor-pointer select-none"
         >
           ← Back
         </button>
         <button
           onClick={handleStartWorkout}
-          className="flex-1 active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-6 text-white font-mono text-lg bg-black border-2 border-teal-400 cursor-pointer select-none"
+          className="flex-1 active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-4 md:px-6 text-white font-mono text-base md:text-lg bg-black border-2 border-teal-400 cursor-pointer select-none"
         >
           🏃 Start Workout
         </button>
