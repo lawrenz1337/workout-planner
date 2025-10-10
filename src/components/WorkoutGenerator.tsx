@@ -1,11 +1,11 @@
 /** @format */
 
 import { useState } from "react";
+import { workoutGenerator } from "../services/workoutGenerator";
 import {
-  workoutGenerator,
   GeneratedWorkout,
   GeneratedWorkoutExercise,
-} from "../services/workoutGenerator";
+} from "../types/workout-service";
 import {
   ExerciseCategory,
   ExerciseDifficulty,

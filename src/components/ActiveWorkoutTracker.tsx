@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import {
   GeneratedWorkout,
   GeneratedWorkoutExercise,
-} from "../services/workoutGenerator";
+  WorkoutSection,
+  SetLog,
+} from "../types/workout-service";
 import {
   saveWorkout,
   logWorkoutSet,
@@ -18,14 +20,6 @@ interface ActiveWorkoutTrackerProps {
   userWeightKg?: number;
   onComplete: () => void;
   onExit: () => void;
-}
-
-type WorkoutSection = "warmup" | "main" | "cooldown";
-
-interface SetLog {
-  completed: boolean;
-  reps?: number;
-  duration?: number;
 }
 
 export default function ActiveWorkoutTracker({

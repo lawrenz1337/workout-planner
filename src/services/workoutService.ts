@@ -3,36 +3,31 @@
 import { supabase } from "../lib/supabase";
 import {
   EnhancedWorkout,
-  EnhancedWorkoutLog,
   WorkoutCompletionData,
   PersonalRecord,
   calculateCaloriesBurned,
-  EnhancedExercise,
-  WorkoutType,
 } from "../types/enhanced-types";
-import { GeneratedWorkout } from "./workoutGenerator";
+import {
+  SaveWorkoutInput,
+  SaveWorkoutResult,
+  LogSetInput,
+  CompleteWorkoutInput,
+  WorkoutHistoryOptions,
+  WorkoutExerciseWithLogs,
+  WorkoutDetails,
+  EnhancedExercise,
+} from "../types/workout-service";
 
 // ============================================================================
 // SAVE WORKOUT
 // ============================================================================
-
-interface SaveWorkoutInput {
-  userId: string;
-  generatedWorkout: GeneratedWorkout;
-  userWeightKg?: number;
-}
-
-interface SaveWorkoutResult {
-  workoutId: string;
-  workoutExerciseIds: Record<string, string>; // Maps order_index to workout_exercise_id
-}
 
 /**
  * Save a generated workout to the database
  * Call this when user clicks "Start Workout"
  */
 export async function saveWorkout(
-  input: SaveWorkoutInput
+  input: SaveWorkoutInput,
 ): Promise<SaveWorkoutResult> {
   const { userId, generatedWorkout, userWeightKg = 70 } = input;
 
@@ -103,7 +98,7 @@ export async function saveWorkout(
 
   if (exercisesError || !workoutExercises) {
     throw new Error(
-      `Failed to save workout exercises: ${exercisesError?.message}`
+      `Failed to save workout exercises: ${exercisesError?.message}`,
     );
   }
 
@@ -122,17 +117,6 @@ export async function saveWorkout(
 // ============================================================================
 // LOG WORKOUT SET
 // ============================================================================
-
-interface LogSetInput {
-  workoutExerciseId: string;
-  setNumber: number;
-  repsCompleted?: number;
-  durationSeconds?: number;
-  weightKg?: number;
-  difficultyRating?: number;
-  formRating?: number;
-  notes?: string;
-}
 
 /**
  * Log a completed set during an active workout
@@ -158,17 +142,12 @@ export async function logWorkoutSet(input: LogSetInput): Promise<void> {
 // COMPLETE WORKOUT
 // ============================================================================
 
-interface CompleteWorkoutInput {
-  workoutId: string;
-  userId: string;
-}
-
 /**
  * Mark workout as completed and calculate final stats
  * Call this when user finishes the workout
  */
 export async function completeWorkout(
-  input: CompleteWorkoutInput
+  input: CompleteWorkoutInput,
 ): Promise<WorkoutCompletionData> {
   const { workoutId, userId } = input;
 
@@ -238,7 +217,7 @@ export async function completeWorkout(
 
   for (const log of logs || []) {
     const workoutExercise = workoutExercises?.find(
-      (we) => we.id === log.workout_exercise_id
+      (we) => we.id === log.workout_exercise_id,
     );
     if (!workoutExercise) continue;
 
@@ -295,20 +274,12 @@ export async function completeWorkout(
 // GET WORKOUT HISTORY
 // ============================================================================
 
-interface WorkoutHistoryOptions {
-  limit?: number;
-  offset?: number;
-  startDate?: string;
-  endDate?: string;
-  workoutType?: WorkoutType;
-}
-
 /**
  * Get user's workout history
  */
 export async function getWorkoutHistory(
   userId: string,
-  options: WorkoutHistoryOptions = {}
+  options: WorkoutHistoryOptions = {},
 ): Promise<EnhancedWorkout[]> {
   const { limit = 50, offset = 0, startDate, endDate, workoutType } = options;
 
@@ -343,27 +314,11 @@ export async function getWorkoutHistory(
 // GET WORKOUT DETAILS
 // ============================================================================
 
-interface WorkoutExerciseWithLogs {
-  id: string;
-  exercise: EnhancedExercise;
-  order_index: number;
-  sets: number;
-  target_reps?: number;
-  target_duration_seconds?: number;
-  rest_seconds: number;
-  notes?: string;
-  logs: EnhancedWorkoutLog[];
-}
-
-interface WorkoutDetails extends EnhancedWorkout {
-  exercises: WorkoutExerciseWithLogs[];
-}
-
 /**
  * Get detailed workout information including exercises and logs
  */
 export async function getWorkoutDetails(
-  workoutId: string
+  workoutId: string,
 ): Promise<WorkoutDetails | null> {
   // 1. Get workout
   const { data: workout, error: workoutError } = await supabase
@@ -428,7 +383,7 @@ export async function getWorkoutDetails(
  */
 export async function deleteWorkout(
   workoutId: string,
-  userId: string
+  userId: string,
 ): Promise<void> {
   const { error } = await supabase
     .from("workouts")
@@ -450,7 +405,7 @@ export async function deleteWorkout(
  */
 export async function repeatWorkout(
   workoutId: string,
-  userId: string
+  userId: string,
 ): Promise<SaveWorkoutResult> {
   // Get the original workout details
   const details = await getWorkoutDetails(workoutId);
@@ -495,7 +450,7 @@ export async function repeatWorkout(
 
   if (exercisesError || !workoutExercises) {
     throw new Error(
-      `Failed to copy workout exercises: ${exercisesError?.message}`
+      `Failed to copy workout exercises: ${exercisesError?.message}`,
     );
   }
 

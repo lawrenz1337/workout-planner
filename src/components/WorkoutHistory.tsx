@@ -7,8 +7,12 @@ import {
   PersonalRecord,
   calculateStreak,
   formatVolume,
-  EnhancedWorkoutLog,
 } from "../types/enhanced-types";
+import {
+  WorkoutExerciseWithLogs,
+  WorkoutDetails,
+  EnhancedWorkoutLog,
+} from "../types/workout-service";
 import {
   getWorkoutHistory,
   getWorkoutDetails,
@@ -16,36 +20,6 @@ import {
 
 interface WorkoutHistoryProps {
   userId: string;
-}
-
-interface WorkoutExerciseWithLogs {
-  id: string;
-  exercise: {
-    id: string;
-    name: string;
-    category: string;
-    difficulty: string;
-  };
-  order_index: number;
-  sets: number;
-  target_reps?: number;
-  target_duration_seconds?: number;
-  rest_seconds: number;
-  notes?: string;
-  logs: EnhancedWorkoutLog[];
-}
-
-interface WorkoutDetails {
-  id: string;
-  user_id: string;
-  name: string;
-  type: string;
-  duration_minutes: number;
-  date: string;
-  completed_at?: string;
-  total_volume: number;
-  calories_burned?: number;
-  exercises: WorkoutExerciseWithLogs[];
 }
 
 export default function WorkoutHistory({ userId }: WorkoutHistoryProps) {

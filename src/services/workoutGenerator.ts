@@ -8,24 +8,12 @@ import {
   WorkoutType,
   WorkoutGenerationOptions,
 } from "../types/exercise";
+import {
+  GeneratedWorkoutExercise,
+  GeneratedWorkout,
+} from "../types/workout-service";
 
-export interface GeneratedWorkoutExercise {
-  exercise: Exercise;
-  sets: number;
-  target_reps?: number;
-  target_duration_seconds?: number;
-  rest_seconds: number;
-  order_index: number;
-}
-
-export interface GeneratedWorkout {
-  name: string;
-  type: WorkoutType;
-  warmup: GeneratedWorkoutExercise[];
-  main_work: GeneratedWorkoutExercise[];
-  cooldown: GeneratedWorkoutExercise[];
-  total_duration_minutes: number;
-}
+export type { GeneratedWorkoutExercise, GeneratedWorkout };
 
 class WorkoutGeneratorService {
   /**
