@@ -199,13 +199,13 @@ export default function ActiveWorkoutTracker({
                 ? "💪 Main Work"
                 : "🧘 Cooldown"}
           </h2>
-          <p className="text-sm text-gray-400 font-mono">
-            Elapsed: {formatTime(elapsedTime)}
+          <p className="text-3xl font-mono text-teal-400 mt-1">
+            {formatTime(elapsedTime)}
           </p>
         </div>
         <button
           onClick={onExit}
-          className="px-4 py-2 border-2 border-red-500 text-red-500 font-mono text-sm hover:bg-red-500 hover:text-black transition-colors"
+          className="px-6 py-3 bg-transparent hover:bg-red-900/30 text-red-500 font-bold rounded-none transition-all border-2 border-red-500 hover:border-red-400 font-mono"
         >
           Exit
         </button>
@@ -288,33 +288,87 @@ export default function ActiveWorkoutTracker({
             </div>
           )}
 
-          {/* Set Indicators */}
-          <div className="flex gap-2 mb-6">
-            {Array.from({ length: currentExercise.sets }).map((_, index) => (
-              <div
-                key={index}
-                className={`flex-1 h-3 border-2 ${
-                  index < currentSet - 1
-                    ? "bg-teal-400 border-teal-400"
-                    : index === currentSet - 1
-                      ? "bg-white border-white animate-pulse"
+          {/* Section Indicators - Shows all three workout phases */}
+          <div className="mb-6 space-y-2">
+            <p className="text-xs font-mono text-gray-400">Workout Progress:</p>
+            <div className="flex gap-2">
+              {/* Warmup Section */}
+              <div className="flex-1 space-y-1">
+                <p className="text-xs font-mono text-gray-400">🔥 Warmup</p>
+                <div
+                  className={`h-3 border-2 transition-all ${
+                    currentSection === "warmup"
+                      ? "bg-teal-400 border-teal-400 animate-pulse"
+                      : getCompletedExercises() >= workout.warmup.length
+                        ? "bg-teal-400 border-teal-400"
+                        : "bg-black border-gray-600"
+                  }`}
+                />
+              </div>
+
+              {/* Main Work Section */}
+              <div className="flex-1 space-y-1">
+                <p className="text-xs font-mono text-gray-400">💪 Main</p>
+                <div
+                  className={`h-3 border-2 transition-all ${
+                    currentSection === "main"
+                      ? "bg-teal-400 border-teal-400 animate-pulse"
+                      : getCompletedExercises() >=
+                          workout.warmup.length + workout.main_work.length
+                        ? "bg-teal-400 border-teal-400"
+                        : getCompletedExercises() > workout.warmup.length
+                          ? "bg-teal-400/50 border-teal-400"
+                          : "bg-black border-gray-600"
+                  }`}
+                />
+              </div>
+
+              {/* Cooldown Section */}
+              <div className="flex-1 space-y-1">
+                <p className="text-xs font-mono text-gray-400">🧘 Cooldown</p>
+                <div
+                  className={`h-3 border-2 transition-all ${
+                    currentSection === "cooldown"
+                      ? "bg-teal-400 border-teal-400 animate-pulse"
                       : "bg-black border-gray-600"
-                }`}
-              />
-            ))}
+                  }`}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Set Indicators - Current exercise sets */}
+          <div className="mb-6">
+            <p className="text-xs font-mono text-gray-400 mb-2">
+              Current Exercise Sets:
+            </p>
+            <div className="flex gap-2">
+              {Array.from({ length: currentExercise.sets }).map((_, index) => (
+                <div
+                  key={index}
+                  className={`flex-1 h-3 border-2 ${
+                    index < currentSet - 1
+                      ? "bg-teal-400 border-teal-400"
+                      : index === currentSet - 1
+                        ? "bg-white border-white animate-pulse"
+                        : "bg-black border-gray-600"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
 
           {/* Action Buttons */}
           <div className="flex gap-4">
             <button
               onClick={handleCompleteSet}
-              className="flex-1 active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-4 px-6 text-white font-mono text-xl bg-black border-2 border-teal-400 cursor-pointer select-none"
+              className="px-6 py-4 bg-transparent hover:bg-gray-800 text-white font-mono text-sm transition-colors border-2 border-teal-400 hover:border-gray-500"
             >
               ✓ Complete Set
             </button>
             <button
               onClick={handleSkipExercise}
-              className="px-6 py-4 border-2 border-white text-white font-mono text-sm hover:bg-gray-800 transition-colors"
+              className="px-6 py-4 bg-transparent hover:bg-gray-800 text-white font-mono text-sm transition-colors border-2 border-white hover:border-gray-500"
             >
               Skip →
             </button>
@@ -326,7 +380,7 @@ export default function ActiveWorkoutTracker({
       <div className="text-center">
         <button
           onClick={() => setIsPaused(!isPaused)}
-          className="px-6 py-2 border-2 border-white text-white font-mono text-sm hover:bg-gray-800 transition-colors"
+          className="px-6 py-2 bg-transparent hover:bg-gray-800 text-white font-mono text-sm transition-colors border-2 border-white hover:border-gray-500"
         >
           {isPaused ? "▶ Resume" : "⏸ Pause"}
         </button>

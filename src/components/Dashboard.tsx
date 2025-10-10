@@ -146,7 +146,7 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex">
+    <div className="h-screen bg-black text-white flex overflow-hidden">
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-black border-b-2 border-white p-4 flex items-center justify-between z-40">
         <span className="font-sans text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-text">
@@ -197,7 +197,7 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1">
+        <nav className="flex-1 overflow-y-auto">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -214,7 +214,7 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
           ))}
         </nav>
 
-        {/* Sign Out Button */}
+        {/* Sign Out Button - Always visible at bottom */}
         <div className="p-4 border-t-2 border-white">
           <button
             onClick={onSignOut}
