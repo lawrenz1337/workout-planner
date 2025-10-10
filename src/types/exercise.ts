@@ -39,6 +39,8 @@ export enum Equipment {
   BARBELL = "barbell",
   DUMBBELLS = "dumbbells",
   KETTLEBELL = "kettlebell",
+  AB_ROLLER = "ab_roller",
+  JUMP_ROPE = "jump_rope",
 }
 
 // Exercise interface
@@ -172,6 +174,8 @@ export function getEquipmentDisplayName(equipment: Equipment): string {
     [Equipment.BARBELL]: "Barbell",
     [Equipment.DUMBBELLS]: "Dumbbells",
     [Equipment.KETTLEBELL]: "Kettlebell",
+    [Equipment.JUMP_ROPE]: "Jump Rope",
+    [Equipment.AB_ROLLER]: "Ab Roller",
   };
   return displayNames[equipment];
 }

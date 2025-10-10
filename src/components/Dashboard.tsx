@@ -5,6 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import { deleteCurrentUser } from "../services/user";
 import ExerciseLibrary from "./ExerciseLibrary";
+import WorkoutGenerator from "./WorkoutGenerator";
 
 interface DashboardProps {
   user: User;
@@ -16,6 +17,7 @@ type Tabs = Array<{ id: TabType; label: string; icon: string }>;
 
 export default function Dashboard({ user, onSignOut }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<TabType>("workouts");
+  const [showGenerator, setShowGenerator] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -49,6 +51,9 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
   const renderContent = () => {
     switch (activeTab) {
       case "workouts":
+        if (showGenerator) {
+          return <WorkoutGenerator />;
+        }
         return (
           <div className="space-y-4">
             <h2 className="text-2xl md:text-3xl font-bold mb-4 font-mono">
@@ -58,7 +63,10 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
               Your workout plans will appear here. Start by creating your first
               workout!
             </p>
-            <button className="mt-4 w-fit active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-2 px-4 text-white font-mono text-base md:text-lg bg-black border-2 border-white cursor-pointer select-none">
+            <button
+              onClick={() => setShowGenerator(true)}
+              className="mt-4 w-fit active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-2 px-4 text-white font-mono text-base md:text-lg bg-black border-2 border-white cursor-pointer select-none"
+            >
               Create Workout
             </button>
           </div>

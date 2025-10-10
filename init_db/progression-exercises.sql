@@ -161,3 +161,39 @@ BEGIN
     UPDATE exercises SET regression_exercise_id = incline_plank_id WHERE id = knee_plank_id;
     UPDATE exercises SET regression_exercise_id = knee_plank_id WHERE id = regular_plank_id;
 END $$;
+
+-- Link Ab Roller progressions
+DO $$
+DECLARE
+    kneeling_id UUID;
+    standing_id UUID;
+BEGIN
+    SELECT id INTO kneeling_id FROM exercises WHERE name = 'Ab Roller (Kneeling)' LIMIT 1;
+    SELECT id INTO standing_id FROM exercises WHERE name = 'Ab Roller (Standing)' LIMIT 1;
+    
+    -- Kneeling progresses to Standing
+    UPDATE exercises SET progression_exercise_id = standing_id WHERE id = kneeling_id;
+    
+    -- Standing regresses to Kneeling
+    UPDATE exercises SET regression_exercise_id = kneeling_id WHERE id = standing_id;
+END $$;
+
+-- Link Jump Rope progressions
+DO $$
+DECLARE
+    basic_id UUID;
+    high_knees_id UUID;
+    double_unders_id UUID;
+BEGIN
+    SELECT id INTO basic_id FROM exercises WHERE name = 'Jump Rope' LIMIT 1;
+    SELECT id INTO high_knees_id FROM exercises WHERE name = 'Jump Rope (High Knees)' LIMIT 1;
+    SELECT id INTO double_unders_id FROM exercises WHERE name = 'Jump Rope (Double Unders)' LIMIT 1;
+    
+    -- Basic -> High Knees -> Double Unders
+    UPDATE exercises SET progression_exercise_id = high_knees_id WHERE id = basic_id;
+    UPDATE exercises SET progression_exercise_id = double_unders_id WHERE id = high_knees_id;
+    
+    -- Regressions
+    UPDATE exercises SET regression_exercise_id = basic_id WHERE id = high_knees_id;
+    UPDATE exercises SET regression_exercise_id = high_knees_id WHERE id = double_unders_id;
+END $$;

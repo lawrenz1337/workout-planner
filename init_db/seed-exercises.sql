@@ -79,3 +79,14 @@ INSERT INTO exercises (name, category, location, difficulty, equipment, descript
 ('Deep Squat Hold', 'mobility', 'home', 'beginner', ARRAY['bodyweight_only'], 'Bottom squat position hold', ARRAY['Hips below knees', 'Heels down', 'Chest up', 'Open hips'], 2, 60, true),
 ('Pike Stretch', 'mobility', 'home', 'beginner', ARRAY['bodyweight_only'], 'Hamstring flexibility', ARRAY['Fold forward', 'Legs straight', 'Reach for toes', 'Breathe into stretch'], 2, 60, true),
 ('Hip Circles', 'mobility', 'home', 'beginner', ARRAY['bodyweight_only'], 'Hip mobility circles', ARRAY['Stand on one leg', 'Circle other leg', 'Both directions', 'Controlled movement'], 2, 30, true);
+
+-- CORE EXERCISES - Ab Roller
+INSERT INTO exercises (name, category, location, difficulty, equipment, description, form_cues, default_sets, default_reps, is_default) VALUES
+('Ab Roller (Kneeling)', 'core', 'home', 'intermediate', ARRAY['ab_roller'], 'Roll out from knees with ab roller', ARRAY['Start on knees', 'Roll forward slowly', 'Keep core tight', 'Don''t let hips sag', 'Roll back to start'], 3, 10, true),
+('Ab Roller (Standing)', 'core', 'home', 'advanced', ARRAY['ab_roller'], 'Roll out from standing position with ab roller', ARRAY['Start standing', 'Roll forward to full extension', 'Extreme core strength required', 'Most difficult ab exercise', 'Keep legs straight'], 3, 5, true);
+
+-- CARDIO EXERCISES - Jump Rope
+INSERT INTO exercises (name, category, location, difficulty, equipment, description, form_cues, default_sets, default_duration_seconds, is_default) VALUES
+('Jump Rope', 'cardio', 'home', 'beginner', ARRAY['jump_rope'], 'Basic jump rope for cardio', ARRAY['Jump on balls of feet', 'Keep jumps small and quick', 'Wrists do the work', 'Maintain rhythm'], 3, 60, true),
+('Jump Rope (Double Unders)', 'cardio', 'home', 'advanced', ARRAY['jump_rope'], 'Advanced jump rope with double rotation per jump', ARRAY['Jump higher than normal', 'Rope passes under feet twice', 'Quick wrist rotation', 'Advanced cardio'], 3, 30, true),
+('Jump Rope (High Knees)', 'cardio', 'home', 'intermediate', ARRAY['jump_rope'], 'Jump rope while driving knees high', ARRAY['Bring knees to hip height', 'Combines cardio with leg work', 'Maintain pace', 'Harder than regular jumping'], 3, 45, true);
