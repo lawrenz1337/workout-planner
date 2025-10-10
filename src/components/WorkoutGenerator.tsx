@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   workoutGenerator,
   GeneratedWorkout,
+  GeneratedWorkoutExercise,
 } from "../services/workoutGenerator";
 import {
   ExerciseCategory,
@@ -22,12 +23,14 @@ export default function WorkoutGenerator() {
   const [generatedWorkout, setGeneratedWorkout] =
     useState<GeneratedWorkout | null>(null);
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
+  const [workoutOptions, setWorkoutOptions] =
+    useState<WorkoutGenerationOptions | null>(null);
 
   // Form state
   const [duration, setDuration] = useState(30);
-  const [difficulty, setDifficulty] = useState<ExerciseDifficulty>(
+  const [difficulty, setDifficulty] = useState<ExerciseDifficulty[]>([
     ExerciseDifficulty.INTERMEDIATE,
-  );
+  ]);
   const [workoutType, setWorkoutType] = useState<WorkoutType>(WorkoutType.HOME);
   const [selectedCategories, setSelectedCategories] = useState<
     ExerciseCategory[]
@@ -64,6 +67,12 @@ export default function WorkoutGenerator() {
     Equipment.JUMP_ROPE,
   ];
 
+  const toggleDifficulty = (diff: ExerciseDifficulty) => {
+    setDifficulty((prev) =>
+      prev.includes(diff) ? prev.filter((d) => d !== diff) : [...prev, diff],
+    );
+  };
+
   const toggleCategory = (category: ExerciseCategory) => {
     setSelectedCategories((prev) =>
       prev.includes(category)
@@ -90,15 +99,25 @@ export default function WorkoutGenerator() {
       return;
     }
 
+    if (difficulty.length === 0) {
+      alert("Please select at least one difficulty level");
+      return;
+    }
+
     if (exercisesLoading) {
       alert("Exercises are not loaded yet, please wait");
       return;
     }
 
     try {
+      // Filter exercises by selected difficulties
+      const filteredExercises = exercises.filter((ex) =>
+        difficulty.includes(ex.difficulty),
+      );
+
       const options: WorkoutGenerationOptions = {
         duration_minutes: duration,
-        difficulty,
+        difficulty: difficulty[0], // Primary difficulty for backward compatibility
         categories: selectedCategories,
         workout_type: workoutType,
         available_equipment: equipment,
@@ -106,12 +125,76 @@ export default function WorkoutGenerator() {
         include_cooldown: true,
       };
 
-      const workout = workoutGenerator.generateWorkout(exercises, options);
+      const workout = workoutGenerator.generateWorkout(
+        filteredExercises,
+        options,
+      );
       setGeneratedWorkout(workout);
+      setWorkoutOptions(options);
     } catch (error) {
       console.error("Error generating workout:", error);
       alert("Failed to generate workout. Please try again.");
     }
+  };
+
+  const handleSubstituteExercise = (
+    section: "warmup" | "main_work" | "cooldown",
+    index: number,
+  ) => {
+    if (!generatedWorkout || !workoutOptions) return;
+
+    const currentExercise = generatedWorkout[section][index];
+
+    // Filter exercises for substitution
+    const availableExercises = exercises.filter((ex) => {
+      // Must be same category
+      if (ex.category !== currentExercise.exercise.category) return false;
+      // Must not already be in the workout
+      const allWorkoutExercises = [
+        ...generatedWorkout.warmup,
+        ...generatedWorkout.main_work,
+        ...generatedWorkout.cooldown,
+      ];
+      if (allWorkoutExercises.some((we) => we.exercise.id === ex.id))
+        return false;
+      // Must match one of the selected difficulties
+      if (!difficulty.includes(ex.difficulty)) return false;
+      // Must have compatible equipment
+      const hasCompatibleEquipment = ex.equipment.some((eq) =>
+        workoutOptions.available_equipment.includes(eq),
+      );
+      if (!hasCompatibleEquipment) return false;
+
+      return true;
+    });
+
+    if (availableExercises.length === 0) {
+      alert("No alternative exercises found for this category");
+      return;
+    }
+
+    // Pick a random alternative
+    const randomIndex = Math.floor(Math.random() * availableExercises.length);
+    const newExercise = availableExercises[randomIndex];
+
+    // Create new exercise with same sets/reps/rest as the one being replaced
+    const substitutedExercise: GeneratedWorkoutExercise = {
+      exercise: newExercise,
+      sets: currentExercise.sets,
+      target_reps: newExercise.default_reps || currentExercise.target_reps,
+      target_duration_seconds:
+        newExercise.default_duration_seconds ||
+        currentExercise.target_duration_seconds,
+      rest_seconds: currentExercise.rest_seconds,
+      order_index: currentExercise.order_index,
+    };
+
+    // Update the workout
+    const updatedWorkout = { ...generatedWorkout };
+    updatedWorkout[section] = [...updatedWorkout[section]];
+    updatedWorkout[section][index] = substitutedExercise;
+
+    setGeneratedWorkout(updatedWorkout);
   };
 
   if (isWorkoutActive && generatedWorkout) {
@@ -143,6 +226,7 @@ export default function WorkoutGenerator() {
         onBack={() => setGeneratedWorkout(null)}
         onRegenerate={handleGenerate}
         handleStartWorkout={handleStartWorkout}
+        onSubstitute={handleSubstituteExercise}
       />
     );
   }
@@ -210,13 +294,13 @@ export default function WorkoutGenerator() {
       {/* Difficulty */}
       <div>
         <label className="block text-sm font-mono text-gray-400 mb-2">
-          Difficulty Level
+          Difficulty Level (select at least 1)
         </label>
         <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => setDifficulty(ExerciseDifficulty.BEGINNER)}
+            onClick={() => toggleDifficulty(ExerciseDifficulty.BEGINNER)}
             className={`px-4 py-2 font-mono text-sm transition-colors border-2 ${
-              difficulty === ExerciseDifficulty.BEGINNER
+              difficulty.includes(ExerciseDifficulty.BEGINNER)
                 ? "bg-teal-400 text-black border-teal-400"
                 : "bg-black text-white border-white hover:border-teal-400"
             }`}
@@ -224,9 +308,9 @@ export default function WorkoutGenerator() {
             Beginner
           </button>
           <button
-            onClick={() => setDifficulty(ExerciseDifficulty.INTERMEDIATE)}
+            onClick={() => toggleDifficulty(ExerciseDifficulty.INTERMEDIATE)}
             className={`px-4 py-2 font-mono text-sm transition-colors border-2 ${
-              difficulty === ExerciseDifficulty.INTERMEDIATE
+              difficulty.includes(ExerciseDifficulty.INTERMEDIATE)
                 ? "bg-teal-400 text-black border-teal-400"
                 : "bg-black text-white border-white hover:border-teal-400"
             }`}
@@ -234,9 +318,9 @@ export default function WorkoutGenerator() {
             Intermediate
           </button>
           <button
-            onClick={() => setDifficulty(ExerciseDifficulty.ADVANCED)}
+            onClick={() => toggleDifficulty(ExerciseDifficulty.ADVANCED)}
             className={`px-4 py-2 font-mono text-sm transition-colors border-2 ${
-              difficulty === ExerciseDifficulty.ADVANCED
+              difficulty.includes(ExerciseDifficulty.ADVANCED)
                 ? "bg-teal-400 text-black border-teal-400"
                 : "bg-black text-white border-white hover:border-teal-400"
             }`}
@@ -293,7 +377,7 @@ export default function WorkoutGenerator() {
       {/* Generate Button */}
       <button
         onClick={handleGenerate}
-        disabled={selectedCategories.length === 0}
+        disabled={selectedCategories.length === 0 || difficulty.length === 0}
         className="w-full active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-6 text-white font-mono text-xl bg-black border-2 border-white cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed"
       >
         ✨ Generate Workout
@@ -308,6 +392,10 @@ interface WorkoutPreviewProps {
   onBack: () => void;
   onRegenerate: () => void;
   handleStartWorkout: () => void;
+  onSubstitute: (
+    section: "warmup" | "main_work" | "cooldown",
+    index: number,
+  ) => void;
 }
 
 function WorkoutPreview({
@@ -315,6 +403,7 @@ function WorkoutPreview({
   onBack,
   onRegenerate,
   handleStartWorkout,
+  onSubstitute,
 }: WorkoutPreviewProps) {
   return (
     <div className="space-y-6">
@@ -343,15 +432,24 @@ function WorkoutPreview({
                 key={index}
                 className="flex justify-between items-center border-b border-gray-700 pb-2"
               >
-                <div>
+                <div className="flex-1">
                   <p className="font-mono text-white">{item.exercise.name}</p>
                   <p className="text-sm text-gray-400 font-sans">
                     {item.exercise.category.replace("_", " ")}
                   </p>
                 </div>
-                <p className="font-mono text-teal-400">
-                  {item.target_duration_seconds}s
-                </p>
+                <div className="flex items-center gap-3">
+                  <p className="font-mono text-teal-400">
+                    {item.target_duration_seconds}s
+                  </p>
+                  <button
+                    onClick={() => onSubstitute("warmup", index)}
+                    className="px-2 py-1 text-xs bg-transparent hover:bg-gray-800 text-gray-400 hover:text-white font-mono transition-colors border border-gray-600 hover:border-white"
+                    title="Substitute exercise"
+                  >
+                    🔄
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -367,7 +465,7 @@ function WorkoutPreview({
           {workout.main_work.map((item, index) => (
             <div key={index} className="border-2 border-white p-3">
               <div className="flex justify-between items-start mb-2">
-                <div>
+                <div className="flex-1">
                   <p className="font-mono text-white font-bold">
                     {item.exercise.name}
                   </p>
@@ -375,9 +473,18 @@ function WorkoutPreview({
                     {item.exercise.category.replace("_", " ")}
                   </p>
                 </div>
-                <span className="bg-teal-400 text-black px-2 py-1 text-xs font-mono">
-                  {item.exercise.difficulty}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="bg-teal-400 text-black px-2 py-1 text-xs font-mono">
+                    {item.exercise.difficulty}
+                  </span>
+                  <button
+                    onClick={() => onSubstitute("main_work", index)}
+                    className="px-2 py-1 text-xs bg-transparent hover:bg-gray-800 text-gray-400 hover:text-white font-mono transition-colors border border-gray-600 hover:border-white"
+                    title="Substitute exercise"
+                  >
+                    🔄
+                  </button>
+                </div>
               </div>
               <div className="flex gap-4 text-sm font-mono">
                 <span className="text-teal-400">{item.sets} sets</span>
@@ -407,15 +514,24 @@ function WorkoutPreview({
                 key={index}
                 className="flex justify-between items-center border-b border-gray-700 pb-2"
               >
-                <div>
+                <div className="flex-1">
                   <p className="font-mono text-white">{item.exercise.name}</p>
                   <p className="text-sm text-gray-400 font-sans">
                     {item.exercise.category.replace("_", " ")}
                   </p>
                 </div>
-                <p className="font-mono text-teal-400">
-                  {item.target_duration_seconds}s
-                </p>
+                <div className="flex items-center gap-3">
+                  <p className="font-mono text-teal-400">
+                    {item.target_duration_seconds}s
+                  </p>
+                  <button
+                    onClick={() => onSubstitute("cooldown", index)}
+                    className="px-2 py-1 text-xs bg-transparent hover:bg-gray-800 text-gray-400 hover:text-white font-mono transition-colors border border-gray-600 hover:border-white"
+                    title="Substitute exercise"
+                  >
+                    🔄
+                  </button>
+                </div>
               </div>
             ))}
           </div>

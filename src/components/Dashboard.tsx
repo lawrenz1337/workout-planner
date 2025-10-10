@@ -31,7 +31,7 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
 
   const handleTabClick = (tabId: TabType) => {
     setActiveTab(tabId);
-    setSidebarOpen(false); // Close sidebar on mobile after selecting
+    setSidebarOpen(false);
   };
 
   const handleDeleteAccount = async () => {
@@ -226,7 +226,7 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-4 md:p-8 pt-20 lg:pt-8">
+      <main className="flex-1 p-4 md:p-8 pt-20 lg:pt-8 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6 md:mb-8">
             <h1 className="text-3xl md:text-4xl font-mono font-bold mb-2">

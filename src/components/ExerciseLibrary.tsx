@@ -232,6 +232,7 @@ export default function ExerciseLibrary() {
           exercise={selectedExercise}
           onClose={() => setSelectedExercise(null)}
           exercises={exercises}
+          onNavigate={(exercise) => setSelectedExercise(exercise)}
         />
       )}
     </div>
@@ -243,12 +244,14 @@ interface ExerciseDetailModalProps {
   exercise: Exercise;
   onClose: () => void;
   exercises: Exercise[];
+  onNavigate: (exercise: Exercise) => void;
 }
 
 function ExerciseDetailModal({
   exercise,
   onClose,
   exercises,
+  onNavigate,
 }: ExerciseDetailModalProps) {
   const progression = exercises.find(
     (e) => e.id === exercise.progression_exercise_id,
@@ -364,12 +367,15 @@ function ExerciseDetailModal({
             </h3>
             <div className="space-y-2">
               {regression && (
-                <div className="bg-black border-2 border-white p-3">
+                <button
+                  onClick={() => onNavigate(regression)}
+                  className="w-full bg-black border-2 border-white hover:border-teal-400 p-3 text-left transition-all"
+                >
                   <p className="text-xs text-gray-400 mb-1 font-mono">
                     ← Easier
                   </p>
                   <p className="text-white font-mono">{regression.name}</p>
-                </div>
+                </button>
               )}
               <div className="bg-teal-400 bg-opacity-20 border-2 border-teal-400 p-3">
                 <p className="text-xs text-teal-400 mb-1 font-mono">Current</p>
@@ -378,12 +384,15 @@ function ExerciseDetailModal({
                 </p>
               </div>
               {progression && (
-                <div className="bg-black border-2 border-white p-3">
+                <button
+                  onClick={() => onNavigate(progression)}
+                  className="w-full bg-black border-2 border-white hover:border-teal-400 p-3 text-left transition-all"
+                >
                   <p className="text-xs text-gray-400 mb-1 font-mono">
                     Harder →
                   </p>
                   <p className="text-white font-mono">{progression.name}</p>
-                </div>
+                </button>
               )}
             </div>
           </div>
