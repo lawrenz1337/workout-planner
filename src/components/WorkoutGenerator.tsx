@@ -1,6 +1,7 @@
 /** @format */
 
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { workoutGenerator } from "../services/workoutGenerator";
 import {
   GeneratedWorkout,
@@ -19,20 +20,15 @@ import {
 import { useExercises } from "../hooks/useExercises";
 import { useUserPreferences } from "../hooks/useUserPreferences";
 import { EQUIPMENT_OPTIONS } from "../constants";
-import ActiveWorkoutTracker from "./ActiveWorkoutTracker";
 
 interface WorkoutGeneratorProps {
   userId: string;
-  userWeightKg?: number;
 }
 
-export default function WorkoutGenerator({
-  userId,
-  userWeightKg,
-}: WorkoutGeneratorProps) {
+export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
+  const navigate = useNavigate();
   const [generatedWorkout, setGeneratedWorkout] =
     useState<GeneratedWorkout | null>(null);
-  const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [workoutOptions, setWorkoutOptions] =
     useState<WorkoutGenerationOptions | null>(null);
 
@@ -107,7 +103,9 @@ export default function WorkoutGenerator({
   };
 
   const handleStartWorkout = () => {
-    setIsWorkoutActive(true);
+    if (generatedWorkout) {
+      navigate("/workouts/active", { state: { workout: generatedWorkout } });
+    }
   };
 
   const toggleEquipment = (equip: Equipment) => {
@@ -219,29 +217,6 @@ export default function WorkoutGenerator({
           Loading your preferences...
         </div>
       </div>
-    );
-  }
-
-  if (isWorkoutActive && generatedWorkout) {
-    return (
-      <ActiveWorkoutTracker
-        workout={generatedWorkout}
-        userId={userId}
-        userWeightKg={userWeightKg}
-        onComplete={() => {
-          setIsWorkoutActive(false);
-          setGeneratedWorkout(null);
-        }}
-        onExit={() => {
-          if (
-            confirm(
-              "Are you sure you want to exit? Your progress will be lost.",
-            )
-          ) {
-            setIsWorkoutActive(false);
-          }
-        }}
-      />
     );
   }
 

@@ -197,3 +197,122 @@ BEGIN
     UPDATE exercises SET regression_exercise_id = basic_id WHERE id = high_knees_id;
     UPDATE exercises SET regression_exercise_id = high_knees_id WHERE id = double_unders_id;
 END $$;
+
+-- ============================================================================
+-- LINK PROGRESSIONS FOR NEW EXERCISES
+-- Run this AFTER adding the new exercises
+-- ============================================================================
+
+-- Side Plank progression: Knee Down -> Full Side Plank
+DO $$
+DECLARE
+    knee_side_plank_id UUID;
+    side_plank_id UUID;
+BEGIN
+    SELECT id INTO knee_side_plank_id FROM exercises WHERE name = 'Side Plank (Knee Down)' LIMIT 1;
+    SELECT id INTO side_plank_id FROM exercises WHERE name = 'Side Plank' LIMIT 1;
+    
+    -- Side Plank (Knee Down) progresses to Side Plank
+    UPDATE exercises SET progression_exercise_id = side_plank_id WHERE id = knee_side_plank_id;
+    
+    -- Side Plank regresses to Side Plank (Knee Down)
+    UPDATE exercises SET regression_exercise_id = knee_side_plank_id WHERE id = side_plank_id;
+    
+    RAISE NOTICE 'Linked Side Plank progression';
+END $$;
+
+-- Lunge progression: Reverse Lunges -> Regular Lunges -> Bulgarian Split Squats
+DO $$
+DECLARE
+    reverse_lunge_id UUID;
+    lunge_id UUID;
+    bulgarian_id UUID;
+BEGIN
+    SELECT id INTO reverse_lunge_id FROM exercises WHERE name = 'Reverse Lunges' LIMIT 1;
+    SELECT id INTO lunge_id FROM exercises WHERE name = 'Lunges' LIMIT 1;
+    SELECT id INTO bulgarian_id FROM exercises WHERE name = 'Bulgarian Split Squats' LIMIT 1;
+    
+    -- Progressions
+    UPDATE exercises SET progression_exercise_id = lunge_id WHERE id = reverse_lunge_id;
+    UPDATE exercises SET progression_exercise_id = bulgarian_id WHERE id = lunge_id;
+    
+    -- Regressions
+    UPDATE exercises SET regression_exercise_id = reverse_lunge_id WHERE id = lunge_id;
+    UPDATE exercises SET regression_exercise_id = lunge_id WHERE id = bulgarian_id;
+    
+    RAISE NOTICE 'Linked Lunge progression chain';
+END $$;
+
+-- Squat variants: Add Sumo Squats as alternative progression from Bodyweight Squats
+DO $$
+DECLARE
+    sumo_squat_id UUID;
+    regular_squat_id UUID;
+BEGIN
+    SELECT id INTO sumo_squat_id FROM exercises WHERE name = 'Sumo Squats' LIMIT 1;
+    SELECT id INTO regular_squat_id FROM exercises WHERE name = 'Bodyweight Squats' LIMIT 1;
+    
+    -- Sumo Squats regress to regular squats (they're just a variation, similar difficulty)
+    UPDATE exercises SET regression_exercise_id = regular_squat_id WHERE id = sumo_squat_id;
+    
+    RAISE NOTICE 'Linked Sumo Squat regression';
+END $$;
+
+-- Core progressions: Add new exercises to core progression chains
+-- Bicycle Crunches -> Russian Twists (rotation progression)
+DO $$
+DECLARE
+    bicycle_id UUID;
+    russian_id UUID;
+BEGIN
+    SELECT id INTO bicycle_id FROM exercises WHERE name = 'Bicycle Crunches' LIMIT 1;
+    SELECT id INTO russian_id FROM exercises WHERE name = 'Russian Twists' LIMIT 1;
+    
+    -- Bicycle Crunches progress to Russian Twists
+    UPDATE exercises SET progression_exercise_id = russian_id WHERE id = bicycle_id;
+    UPDATE exercises SET regression_exercise_id = bicycle_id WHERE id = russian_id;
+    
+    RAISE NOTICE 'Linked Bicycle Crunches -> Russian Twists';
+END $$;
+
+-- Leg raise progression: Lying Leg Raises -> Flutter Kicks -> Reverse Crunches -> Hanging Leg Raises
+DO $$
+DECLARE
+    lying_leg_raise_id UUID;
+    flutter_kick_id UUID;
+    reverse_crunch_id UUID;
+    hanging_leg_raise_id UUID;
+BEGIN
+    SELECT id INTO lying_leg_raise_id FROM exercises WHERE name = 'Lying Leg Raises' LIMIT 1;
+    SELECT id INTO flutter_kick_id FROM exercises WHERE name = 'Flutter Kicks' LIMIT 1;
+    SELECT id INTO reverse_crunch_id FROM exercises WHERE name = 'Reverse Crunches' LIMIT 1;
+    SELECT id INTO hanging_leg_raise_id FROM exercises WHERE name = 'Hanging Leg Raises' LIMIT 1;
+    
+    -- Create progression chain
+    UPDATE exercises SET progression_exercise_id = flutter_kick_id WHERE id = lying_leg_raise_id;
+    UPDATE exercises SET progression_exercise_id = reverse_crunch_id WHERE id = flutter_kick_id;
+    UPDATE exercises SET progression_exercise_id = hanging_leg_raise_id WHERE id = reverse_crunch_id;
+    
+    -- Regressions
+    UPDATE exercises SET regression_exercise_id = lying_leg_raise_id WHERE id = flutter_kick_id;
+    UPDATE exercises SET regression_exercise_id = flutter_kick_id WHERE id = reverse_crunch_id;
+    UPDATE exercises SET regression_exercise_id = reverse_crunch_id WHERE id = hanging_leg_raise_id;
+    
+    RAISE NOTICE 'Linked leg raise progression chain';
+END $$;
+
+-- Verify progressions were set
+DO $$
+DECLARE
+    progression_count INTEGER;
+BEGIN
+    SELECT COUNT(*) INTO progression_count
+    FROM exercises
+    WHERE progression_exercise_id IS NOT NULL
+      AND name IN (
+        'Side Plank (Knee Down)', 'Reverse Lunges', 'Lunges', 
+        'Bicycle Crunches', 'Lying Leg Raises', 'Flutter Kicks', 'Reverse Crunches'
+      );
+    
+    RAISE NOTICE '✅ Set % progressions for new exercises', progression_count;
+END $$;

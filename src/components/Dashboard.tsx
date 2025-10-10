@@ -4,7 +4,6 @@ import { useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import { deleteCurrentUser } from "../services/user";
-import { useUserPreferences } from "../hooks/useUserPreferences";
 import ExerciseLibrary from "./ExerciseLibrary";
 import WorkoutGenerator from "./WorkoutGenerator";
 import UserProfileSettings from "./UserProfileSettings";
@@ -24,8 +23,6 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const { preferences } = useUserPreferences(user.id);
 
   const tabs: Tabs = [
     { id: "workouts", label: "Workouts", icon: "💪" },
@@ -57,12 +54,7 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
     switch (activeTab) {
       case "workouts":
         if (showGenerator) {
-          return (
-            <WorkoutGenerator
-              userId={user.id}
-              userWeightKg={preferences?.weight_kg}
-            />
-          );
+          return <WorkoutGenerator userId={user.id} />;
         }
         return (
           <div className="space-y-4">
