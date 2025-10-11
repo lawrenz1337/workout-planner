@@ -42,11 +42,6 @@ export default function WorkoutCalendar({ workouts }: WorkoutCalendarProps) {
     return "bg-teal-500 border-teal-400"; // fallback
   };
 
-  const getDayLabel = (date: Date) => {
-    const dayNames = ["S", "M", "T", "W", "T", "F", "S"];
-    return dayNames[date.getDay()];
-  };
-
   const isToday = (date: Date) => {
     const todayStr = today.toISOString().split("T")[0];
     const dateStr = date.toISOString().split("T")[0];

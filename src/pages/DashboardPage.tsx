@@ -12,6 +12,7 @@ import RecentActivity from "../components/dashboard/RecentActivity";
 import QuickStats from "../components/dashboard/QuickStats";
 import WorkoutCalendar from "../components/dashboard/WorkoutCalendar";
 import PersonalRecordsPreview from "../components/dashboard/PersonalRecordsPreview";
+import MuscleRecoveryCard from "../components/dashboard/MuscleRecoveryCard";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -86,6 +87,9 @@ export default function DashboardPage() {
         {/* Quick Stats */}
         <QuickStats workouts={workouts} />
       </div>
+
+      {/* Muscle Recovery Status */}
+      <MuscleRecoveryCard workouts={workouts} />
 
       {/* Personal Records */}
       {personalRecords.length > 0 && (

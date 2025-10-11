@@ -20,7 +20,10 @@ import {
 import { useExercises } from "../hooks/useExercises";
 import { useUserPreferences } from "../hooks/useUserPreferences";
 import { EQUIPMENT_OPTIONS } from "../constants";
-
+import { suggestWorkoutCategories } from "../utils/muscleRecovery";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "../lib/supabase";
+import { queryKeys } from "../lib/queryKeys";
 interface WorkoutGeneratorProps {
   userId: string;
 }
@@ -52,6 +55,22 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
   const [equipment, setEquipment] = useState<Equipment[]>([
     Equipment.BODYWEIGHT_ONLY,
   ]);
+  const [respectRecovery, setRespectRecovery] = useState(true);
+
+  const { data: userWorkouts = [] } = useQuery({
+    queryKey: queryKeys.workouts.all(userId),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("workouts")
+        .select("*")
+        .eq("user_id", userId)
+        .order("completed_at", { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   // Pre-fill form from user preferences
   useEffect(() => {
@@ -130,10 +149,28 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
         difficulty.includes(ex.difficulty)
       );
 
+      // Filter categories based on recovery if enabled
+      let categoriesToUse = selectedCategories;
+      if (respectRecovery && userWorkouts.length > 0) {
+        const recoveredCategories = suggestWorkoutCategories(userWorkouts);
+        categoriesToUse = selectedCategories.filter((cat) =>
+          recoveredCategories.includes(cat)
+        );
+
+        // If all selected categories are fatigued, warn user
+        if (categoriesToUse.length === 0) {
+          const shouldContinue = window.confirm(
+            "All selected muscle groups are still recovering. Continue anyway?"
+          );
+          if (!shouldContinue) return;
+          categoriesToUse = selectedCategories; // Use original selection
+        }
+      }
+
       const options: WorkoutGenerationOptions = {
         duration_minutes: duration,
         difficulty: difficulty[0],
-        categories: selectedCategories,
+        categories: categoriesToUse,
         workout_type: workoutType,
         available_equipment: equipment,
         include_warmup: true,
@@ -345,6 +382,39 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
           ))}
         </div>
       </div>
+
+      {/* Respect Muscle Recovery Toggle */}
+      {userWorkouts.filter((w) => w.completed_at).length > 0 && (
+        <div className="border border-yellow-400 p-3 md:p-4 bg-yellow-400/5">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={respectRecovery}
+              onChange={(e) => setRespectRecovery(e.target.checked)}
+              className="mt-1 w-4 h-4 bg-black border-2 border-white checked:bg-teal-400 cursor-pointer"
+            />
+            <div className="flex-1">
+              <span className="block text-sm font-mono text-white mb-1">
+                💪 Respect Muscle Recovery
+              </span>
+              <span className="block text-xs text-gray-400 font-sans">
+                {respectRecovery
+                  ? "Workout will prioritize recovered muscle groups"
+                  : "All muscle groups available (may cause overtraining)"}
+              </span>
+              {respectRecovery && (
+                <span className="block text-xs text-teal-400 font-mono mt-2">
+                  Suggested:{" "}
+                  {suggestWorkoutCategories(userWorkouts)
+                    .slice(0, 3)
+                    .map((c) => getCategoryDisplayName(c))
+                    .join(", ") || "All muscles ready"}
+                </span>
+              )}
+            </div>
+          </label>
+        </div>
+      )}
 
       {/* Equipment */}
       <div>
