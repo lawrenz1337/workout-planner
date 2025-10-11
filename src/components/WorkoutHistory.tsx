@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
+import { queryKeys } from "../lib/queryKeys";
 import {
   PersonalRecord,
   calculateStreak,
@@ -24,13 +25,13 @@ interface WorkoutHistoryProps {
 
 export default function WorkoutHistory({ userId }: WorkoutHistoryProps) {
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(
-    null
+    null,
   );
   const [showPRs, setShowPRs] = useState(false);
 
-  // Fetch workout history
+  // Fetch workout history (enhanced data from workoutService)
   const { data: workouts, isLoading: workoutsLoading } = useQuery({
-    queryKey: ["workout_history", userId],
+    queryKey: queryKeys.workouts.history(userId),
     queryFn: async () => {
       return await getWorkoutHistory(userId, { limit: 50 });
     },
@@ -38,7 +39,7 @@ export default function WorkoutHistory({ userId }: WorkoutHistoryProps) {
 
   // Fetch personal records
   const { data: personalRecords, isLoading: prsLoading } = useQuery({
-    queryKey: ["personal_records", userId],
+    queryKey: queryKeys.personalRecords.all(userId),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("personal_records")
@@ -53,7 +54,7 @@ export default function WorkoutHistory({ userId }: WorkoutHistoryProps) {
 
   // Fetch workout details when one is selected
   const { data: workoutDetails } = useQuery({
-    queryKey: ["workout_details", selectedWorkoutId],
+    queryKey: queryKeys.workouts.detail(selectedWorkoutId || ""),
     queryFn: async () => {
       if (!selectedWorkoutId) return null;
       const details = await getWorkoutDetails(selectedWorkoutId);
@@ -68,11 +69,11 @@ export default function WorkoutHistory({ userId }: WorkoutHistoryProps) {
         totalWorkouts: workouts.length,
         totalVolume: workouts.reduce(
           (sum, w) => sum + (w.total_volume || 0),
-          0
+          0,
         ),
         totalCalories: workouts.reduce(
           (sum, w) => sum + (w.calories_burned || 0),
-          0
+          0,
         ),
         totalMinutes: workouts.reduce((sum, w) => sum + w.duration_minutes, 0),
         streak: calculateStreak(workouts),
@@ -241,7 +242,7 @@ export default function WorkoutHistory({ userId }: WorkoutHistoryProps) {
                     </h4>
                     <p className="text-xs text-gray-400 font-mono mt-1">
                       {new Date(
-                        workout.completed_at || workout.date
+                        workout.completed_at || workout.date,
                       ).toLocaleDateString("en-US", {
                         weekday: "short",
                         month: "short",
@@ -294,7 +295,7 @@ function WorkoutDetailsModal({ workout, onClose }: WorkoutDetailsModalProps) {
                 month: "long",
                 day: "numeric",
                 year: "numeric",
-              }
+              },
             )}
           </p>
         </div>
@@ -431,7 +432,7 @@ function PersonalRecordsView({
       acc[exerciseName].push(pr);
       return acc;
     },
-    {} as Record<string, PersonalRecord[]>
+    {} as Record<string, PersonalRecord[]>,
   );
 
   if (loading) {

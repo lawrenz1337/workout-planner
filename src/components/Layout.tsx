@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "../lib/supabase";
+import { queryKeys } from "../lib/queryKeys";
+import { EnhancedWorkout, calculateStreak } from "../types/enhanced-types";
 
 interface LayoutProps {
   user: User;
@@ -20,6 +24,25 @@ export default function Layout({ user, onSignOut }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Fetch workout history for streak calculation
+  const { data: workouts = [] } = useQuery({
+    queryKey: queryKeys.workouts.streak(user.id),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("workouts")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("completed_at", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      return (data || []) as EnhancedWorkout[];
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
+  const streak = calculateStreak(workouts);
 
   const navItems: NavItem[] = [
     { id: "dashboard", label: "Dashboard", icon: "🏠", path: "/dashboard" },
@@ -83,18 +106,32 @@ export default function Layout({ user, onSignOut }: LayoutProps) {
         </div>
 
         {/* User Profile */}
-        <div className="p-6 border-b-2 border-white flex items-center gap-3 mt-16 lg:mt-0">
-          <img
-            src={user.user_metadata.avatar_url}
-            alt={user.user_metadata.full_name}
-            className="w-12 h-12 rounded-full border-2 border-teal-400"
-          />
-          <div className="flex-1 min-w-0">
-            <p className="font-sans font-bold text-sm truncate">
-              {user.user_metadata.full_name}
-            </p>
-            <p className="text-xs text-gray-400 truncate">{user.email}</p>
+        <div className="p-6 border-b-2 border-white mt-16 lg:mt-0">
+          <div className="flex items-center gap-3 mb-2">
+            <img
+              src={user.user_metadata.avatar_url}
+              alt={user.user_metadata.full_name}
+              className="w-12 h-12 rounded-full border-2 border-teal-400"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="font-sans font-bold text-sm truncate">
+                {user.user_metadata.full_name}
+              </p>
+              <p className="text-xs text-gray-400 truncate">{user.email}</p>
+            </div>
           </div>
+
+          {/* Streak Badge */}
+          {streak.current_streak > 0 && (
+            <div className="mt-3 px-3 py-2 bg-teal-400/10 border border-teal-400 flex items-center justify-between">
+              <span className="text-xs font-mono text-teal-400">
+                Current Streak
+              </span>
+              <span className="font-mono font-bold text-white">
+                {streak.current_streak} 🔥
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Navigation */}
@@ -127,7 +164,7 @@ export default function Layout({ user, onSignOut }: LayoutProps) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-4 md:p-8 pt-20 lg:pt-8 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-8 pt-20 lg:pt-8 overflow-y-auto relative">
         <div className="max-w-4xl mx-auto">
           {/* Greeting Section */}
           <div className="mb-6 md:mb-8">
@@ -143,7 +180,7 @@ export default function Layout({ user, onSignOut }: LayoutProps) {
             </p>
           </div>
 
-          {/* Page Content - Remove extra border and padding wrapper */}
+          {/* Page Content */}
           <Outlet />
         </div>
       </main>
