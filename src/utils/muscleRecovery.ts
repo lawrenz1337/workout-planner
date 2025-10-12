@@ -46,15 +46,16 @@ const RECOVERY_TIMES: Record<MuscleGroup, number> = {
 
 /**
  * Map exercise categories to primary muscle groups they train
+ * NOTE: Only listing PRIMARY muscles, not secondary/stabilizers
  */
 const CATEGORY_TO_MUSCLES: Record<ExerciseCategory, MuscleGroup[]> = {
   upper_push: ["chest", "shoulders", "triceps"],
   upper_pull: ["lats", "upper_back", "biceps"],
-  lower_body: ["quads", "hamstrings", "glutes", "calves"],
-  core: ["abs", "obliques", "core"],
-  cardio: ["cardiovascular", "legs"],
-  skills: ["coordination", "full_body"],
-  mobility: ["hips", "shoulders", "spine"],
+  lower_body: ["quads", "hamstrings", "glutes"],
+  core: ["abs", "core"],
+  cardio: ["cardiovascular"],
+  skills: ["coordination"],
+  mobility: ["hips", "spine"],
 };
 
 export interface MuscleRecoveryStatus {
@@ -69,7 +70,7 @@ export interface MuscleRecoveryStatus {
  * Calculate recovery status for all muscle groups based on workout history
  */
 export function calculateMuscleRecovery(
-  workouts: EnhancedWorkout[]
+  workouts: EnhancedWorkout[],
 ): MuscleRecoveryStatus[] {
   const now = Date.now();
   const muscleLastTrained = new Map<MuscleGroup, Date>();
@@ -80,7 +81,7 @@ export function calculateMuscleRecovery(
     .sort(
       (a, b) =>
         new Date(b.completed_at!).getTime() -
-        new Date(a.completed_at!).getTime()
+        new Date(a.completed_at!).getTime(),
     );
 
   // Find last trained date for each muscle group
@@ -116,11 +117,11 @@ export function calculateMuscleRecovery(
     const timeSinceTraining = now - lastTrained.getTime();
     const percentRecovered = Math.min(
       100,
-      (timeSinceTraining / recoveryTimeMs) * 100
+      (timeSinceTraining / recoveryTimeMs) * 100,
     );
     const hoursUntilRecovered = Math.max(
       0,
-      (recoveryTimeMs - timeSinceTraining) / (60 * 60 * 1000)
+      (recoveryTimeMs - timeSinceTraining) / (60 * 60 * 1000),
     );
 
     return {
@@ -136,20 +137,26 @@ export function calculateMuscleRecovery(
 /**
  * Infer which muscle groups were trained based on workout type
  * This is a simplified approach - ideally you'd track actual exercises performed
+ * NOTE: We intentionally avoid marking ALL muscles to prevent over-conservative recovery
  */
 function inferMusclesFromWorkout(workout: EnhancedWorkout): MuscleGroup[] {
   const muscles: MuscleGroup[] = [];
 
   // Use workout duration and type to infer intensity and muscles worked
   const isShortWorkout = workout.duration_minutes < 30;
+  const isMediumWorkout =
+    workout.duration_minutes >= 30 && workout.duration_minutes < 45;
 
   if (workout.type === "home") {
     // Home workouts often focus on bodyweight movements
     if (isShortWorkout) {
       // Quick home session - usually core/cardio focused
-      muscles.push("core", "abs", "cardiovascular", "legs");
+      muscles.push("core", "abs", "cardiovascular");
+    } else if (isMediumWorkout) {
+      // Medium home workout - upper body + core emphasis
+      muscles.push("chest", "shoulders", "triceps", "core", "abs");
     } else {
-      // Full home workout - bodyweight compound movements
+      // Full home workout - more comprehensive
       muscles.push(
         "chest",
         "shoulders",
@@ -158,34 +165,54 @@ function inferMusclesFromWorkout(workout: EnhancedWorkout): MuscleGroup[] {
         "abs",
         "quads",
         "glutes",
-        "calves"
       );
     }
   } else if (workout.type === "gym") {
-    // Gym workouts - more targeted muscle work
+    // Gym workouts - assume alternating split (not full body every time)
     if (isShortWorkout) {
-      // Quick gym session - might be upper or lower focus
-      // Alternate assumption: upper body focused
-      muscles.push("chest", "shoulders", "triceps", "biceps", "upper_back");
+      // Quick gym session - upper body focused
+      muscles.push("chest", "shoulders", "triceps");
+    } else if (isMediumWorkout) {
+      // Medium gym - upper or lower split
+      // Alternate between upper and lower based on date
+      const dayOfMonth = new Date(
+        workout.completed_at || workout.date,
+      ).getDate();
+      if (dayOfMonth % 2 === 0) {
+        // Upper body day
+        muscles.push(
+          "chest",
+          "shoulders",
+          "triceps",
+          "lats",
+          "biceps",
+          "upper_back",
+        );
+      } else {
+        // Lower body day
+        muscles.push("quads", "hamstrings", "glutes", "calves");
+      }
     } else {
-      // Full gym session - comprehensive training
-      muscles.push(
-        "chest",
-        "shoulders",
-        "triceps",
-        "lats",
-        "upper_back",
-        "biceps",
-        "quads",
-        "hamstrings",
-        "glutes",
-        "calves",
-        "core"
-      );
+      // Full gym session - still not everything, assume push/pull/legs rotation
+      const dayOfMonth = new Date(
+        workout.completed_at || workout.date,
+      ).getDate();
+      const rotation = dayOfMonth % 3;
+
+      if (rotation === 0) {
+        // Push day
+        muscles.push("chest", "shoulders", "triceps");
+      } else if (rotation === 1) {
+        // Pull day
+        muscles.push("lats", "upper_back", "biceps", "core");
+      } else {
+        // Leg day
+        muscles.push("quads", "hamstrings", "glutes", "calves");
+      }
     }
   } else {
-    // Fallback: assume general full-body workout
-    muscles.push("full_body", "cardiovascular");
+    // Fallback: assume cardio/conditioning
+    muscles.push("cardiovascular", "legs");
   }
 
   return muscles;
@@ -195,7 +222,7 @@ function inferMusclesFromWorkout(workout: EnhancedWorkout): MuscleGroup[] {
  * Get muscle groups that are fully recovered and ready to train
  */
 export function getRecoveredMuscles(
-  workouts: EnhancedWorkout[]
+  workouts: EnhancedWorkout[],
 ): MuscleGroup[] {
   const recoveryStatus = calculateMuscleRecovery(workouts);
   return recoveryStatus
@@ -207,7 +234,7 @@ export function getRecoveredMuscles(
  * Get muscle groups that are still recovering
  */
 export function getFatiguedMuscles(
-  workouts: EnhancedWorkout[]
+  workouts: EnhancedWorkout[],
 ): MuscleRecoveryStatus[] {
   const recoveryStatus = calculateMuscleRecovery(workouts);
   return recoveryStatus.filter((status) => !status.isRecovered);
@@ -218,24 +245,35 @@ export function getFatiguedMuscles(
  */
 export function canTrainCategory(
   category: ExerciseCategory,
-  workouts: EnhancedWorkout[]
+  workouts: EnhancedWorkout[],
 ): boolean {
   const recoveredMuscles = getRecoveredMuscles(workouts);
   const categoryMuscles = CATEGORY_TO_MUSCLES[category];
 
-  // Category is trainable if at least 50% of its muscles are recovered
+  // If no muscles defined for category, always allow (skills, mobility, cardio)
+  if (!categoryMuscles || categoryMuscles.length === 0) {
+    return true;
+  }
+
+  // Category is trainable if at least ONE primary muscle is recovered
+  // This is less conservative - if any key muscle is ready, you can train that category
   const recoveredCount = categoryMuscles.filter((m) =>
-    recoveredMuscles.includes(m)
+    recoveredMuscles.includes(m),
   ).length;
 
-  return recoveredCount >= categoryMuscles.length / 2;
+  // For categories with 1-2 muscles, need at least 1 recovered
+  // For categories with 3+ muscles, need at least 33% recovered
+  const threshold =
+    categoryMuscles.length <= 2 ? 1 : Math.ceil(categoryMuscles.length / 3);
+
+  return recoveredCount >= threshold;
 }
 
 /**
  * Suggest workout categories based on recovery status
  */
 export function suggestWorkoutCategories(
-  workouts: EnhancedWorkout[]
+  workouts: EnhancedWorkout[],
 ): ExerciseCategory[] {
   const categories = Object.keys(CATEGORY_TO_MUSCLES) as ExerciseCategory[];
 

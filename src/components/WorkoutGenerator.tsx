@@ -156,9 +156,18 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
       let categoriesToUse = selectedCategories;
       if (respectRecovery && userWorkouts.length > 0) {
         const recoveredCategories = suggestWorkoutCategories(userWorkouts);
+
+        console.log("🔍 Recovery Debug:", {
+          selectedCategories,
+          recoveredCategories,
+          userWorkoutsCount: userWorkouts.length,
+        });
+
         categoriesToUse = selectedCategories.filter((cat) =>
           recoveredCategories.includes(cat),
         );
+
+        console.log("✅ Filtered categories:", categoriesToUse);
 
         // If all selected categories are fatigued, warn user
         if (categoriesToUse.length === 0) {
@@ -167,6 +176,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
           );
           if (!shouldContinue) return;
           categoriesToUse = selectedCategories; // Use original selection
+          console.log("⚠️ User chose to continue despite fatigue");
         }
       }
 
