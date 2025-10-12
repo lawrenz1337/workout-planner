@@ -19,11 +19,14 @@ import {
 } from "../types/exercise";
 import { useExercises } from "../hooks/useExercises";
 import { useUserPreferences } from "../hooks/useUserPreferences";
+import { useSaveTemplate } from "../hooks/useTemplates";
 import { EQUIPMENT_OPTIONS } from "../constants";
 import { suggestWorkoutCategories } from "../utils/muscleRecovery";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
 import { queryKeys } from "../lib/queryKeys";
+import { useAuth } from "../hooks/useAuth";
+
 interface WorkoutGeneratorProps {
   userId: string;
 }
@@ -102,7 +105,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
 
   const toggleDifficulty = (diff: ExerciseDifficulty) => {
     setDifficulty((prev) =>
-      prev.includes(diff) ? prev.filter((d) => d !== diff) : [...prev, diff]
+      prev.includes(diff) ? prev.filter((d) => d !== diff) : [...prev, diff],
     );
   };
 
@@ -110,7 +113,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
     setSelectedCategories((prev) =>
       prev.includes(category)
         ? prev.filter((c) => c !== category)
-        : [...prev, category]
+        : [...prev, category],
     );
   };
 
@@ -122,7 +125,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
 
   const toggleEquipment = (equip: Equipment) => {
     setEquipment((prev) =>
-      prev.includes(equip) ? prev.filter((e) => e !== equip) : [...prev, equip]
+      prev.includes(equip) ? prev.filter((e) => e !== equip) : [...prev, equip],
     );
   };
 
@@ -146,7 +149,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
 
     try {
       const filteredExercises = exercises.filter((ex) =>
-        difficulty.includes(ex.difficulty)
+        difficulty.includes(ex.difficulty),
       );
 
       // Filter categories based on recovery if enabled
@@ -154,13 +157,13 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
       if (respectRecovery && userWorkouts.length > 0) {
         const recoveredCategories = suggestWorkoutCategories(userWorkouts);
         categoriesToUse = selectedCategories.filter((cat) =>
-          recoveredCategories.includes(cat)
+          recoveredCategories.includes(cat),
         );
 
         // If all selected categories are fatigued, warn user
         if (categoriesToUse.length === 0) {
           const shouldContinue = window.confirm(
-            "All selected muscle groups are still recovering. Continue anyway?"
+            "All selected muscle groups are still recovering. Continue anyway?",
           );
           if (!shouldContinue) return;
           categoriesToUse = selectedCategories; // Use original selection
@@ -179,7 +182,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
 
       const workout = workoutGenerator.generateWorkout(
         filteredExercises,
-        options
+        options,
       );
       setGeneratedWorkout(workout);
       setWorkoutOptions(options);
@@ -191,7 +194,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
 
   const handleSubstituteExercise = (
     section: "warmup" | "main_work" | "cooldown",
-    index: number
+    index: number,
   ) => {
     if (!generatedWorkout || !workoutOptions) return;
 
@@ -208,7 +211,7 @@ export default function WorkoutGenerator({ userId }: WorkoutGeneratorProps) {
         return false;
       if (!difficulty.includes(ex.difficulty)) return false;
       const hasCompatibleEquipment = ex.equipment.some((eq) =>
-        workoutOptions.available_equipment.includes(eq)
+        workoutOptions.available_equipment.includes(eq),
       );
       if (!hasCompatibleEquipment) return false;
       return true;
@@ -458,7 +461,7 @@ interface WorkoutPreviewProps {
   handleStartWorkout: () => void;
   onSubstitute: (
     section: "warmup" | "main_work" | "cooldown",
-    index: number
+    index: number,
   ) => void;
 }
 
@@ -469,6 +472,32 @@ function WorkoutPreview({
   handleStartWorkout,
   onSubstitute,
 }: WorkoutPreviewProps) {
+  const { user } = useAuth();
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [templateName, setTemplateName] = useState(workout.name);
+
+  const saveTemplateMutation = useSaveTemplate(user?.id || "");
+
+  const handleSaveAsTemplate = async () => {
+    if (!templateName.trim()) {
+      alert("Please enter a template name");
+      return;
+    }
+
+    try {
+      await saveTemplateMutation.mutateAsync({
+        generatedWorkout: workout,
+        templateName: templateName.trim(),
+      });
+
+      alert("✓ Template saved successfully!");
+      setShowSaveModal(false);
+    } catch (error) {
+      console.error("Failed to save template:", error);
+      alert("Failed to save template. Please try again.");
+    }
+  };
+
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Header */}
@@ -612,6 +641,13 @@ function WorkoutPreview({
       {/* Action Buttons */}
       <div className="flex gap-2 md:gap-4 flex-col sm:flex-row">
         <button
+          onClick={() => setShowSaveModal(true)}
+          className="flex-1 active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-yellow-400 after:bg-yellow-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-4 md:px-6 text-white font-mono text-base md:text-lg bg-black border-2 border-yellow-400 cursor-pointer select-none"
+        >
+          💾 Save as Template
+        </button>
+
+        <button
           onClick={onRegenerate}
           className="flex-1 active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-3 px-4 md:px-6 text-white font-mono text-base md:text-lg bg-black border-2 border-white cursor-pointer select-none"
         >
@@ -630,6 +666,49 @@ function WorkoutPreview({
           🏃 Start Workout
         </button>
       </div>
+
+      {/* Save Template Modal */}
+      {showSaveModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+          <div className="bg-black border-2 border-yellow-400 p-6 max-w-md w-full">
+            <h3 className="text-2xl font-bold mb-4 text-yellow-400 font-mono">
+              Save as Template
+            </h3>
+            <p className="text-gray-300 mb-4 font-sans text-sm">
+              Give this workout a memorable name so you can quickly start it
+              later.
+            </p>
+
+            <input
+              type="text"
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+              placeholder="e.g., Monday Upper Body"
+              className="w-full bg-black text-white border-2 border-white px-4 py-3 font-mono focus:border-yellow-400 focus:outline-none mb-6"
+              autoFocus
+            />
+
+            <div className="flex gap-4 flex-col sm:flex-row">
+              <button
+                onClick={handleSaveAsTemplate}
+                disabled={
+                  saveTemplateMutation.isPending || !templateName.trim()
+                }
+                className="flex-1 active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-yellow-400 after:bg-yellow-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-2 px-4 text-white font-mono text-sm bg-black border-2 border-yellow-400 cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saveTemplateMutation.isPending ? "Saving..." : "Save Template"}
+              </button>
+              <button
+                onClick={() => setShowSaveModal(false)}
+                disabled={saveTemplateMutation.isPending}
+                className="flex-1 active:after:w-0 active:before:h-0 active:translate-x-[6px] active:translate-y-[6px] after:left-[calc(100%+2px)] after:top-[-2px] after:h-[calc(100%+4px)] after:w-[6px] after:transition-all before:transition-all after:skew-y-[45deg] before:skew-x-[45deg] before:left-[-2px] before:top-[calc(100%+2px)] before:h-[6px] before:w-[calc(100%+4px)] before:origin-top-left after:origin-top-left relative transition-all after:content-[''] before:content-[''] after:absolute before:absolute before:bg-teal-400 after:bg-teal-400 hover:bg-gray-900 active:bg-gray-800 flex justify-center items-center py-2 px-4 text-white font-mono text-sm bg-black border-2 border-white cursor-pointer select-none"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

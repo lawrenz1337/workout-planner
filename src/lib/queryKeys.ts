@@ -46,4 +46,14 @@ export const queryKeys = {
     profile: (userId: string) => ["user", "profile", userId] as const,
     bmi: (userId: string) => ["user", "bmi", userId] as const,
   },
+
+  // Template queries
+  templates: {
+    // All templates for a user
+    all: (userId: string) => ["templates", userId] as const,
+
+    // Individual template details with exercises
+    detail: (templateId: string) =>
+      ["templates", "detail", templateId] as const,
+  },
 } as const;
