@@ -14,6 +14,15 @@ interface DashboardHeroProps {
 export default function DashboardHero({ workouts }: DashboardHeroProps) {
   const streak = calculateStreak(workouts);
 
+  // Debug logging
+  console.log("🔍 Streak Debug:", {
+    totalWorkouts: workouts.length,
+    completedWorkouts: workouts.filter((w) => w.completed_at).length,
+    currentStreak: streak.current_streak,
+    longestStreak: streak.longest_streak,
+    lastWorkout: streak.last_workout_date,
+  });
+
   const thisWeekWorkouts = getThisWeekWorkouts(workouts);
   const lastWeekWorkouts = getLastWeekWorkouts(workouts);
 

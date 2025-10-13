@@ -290,21 +290,26 @@ export default function ActiveWorkoutTracker({
                 🏆 New Personal Records!
               </p>
               <div className="space-y-2">
-                {completionData.newPRs.map((pr) => (
-                  <div
-                    key={pr.id}
-                    className="text-left border md:border-2 border-yellow-400 p-2 md:p-3"
-                  >
-                    <p className="font-mono text-white font-bold text-sm md:text-base">
-                      {pr.exercise?.name}
-                    </p>
-                    <p className="text-xs md:text-sm text-gray-300 font-sans">
-                      {pr.record_type.replace("_", " ")}: {pr.value}
-                      {pr.record_type === "max_weight" ? " kg" : ""}
-                      {pr.record_type === "max_duration" ? "s" : ""}
-                    </p>
-                  </div>
-                ))}
+                {completionData.newPRs.map((pr) => {
+                  // Handle both 'exercise' and 'exercises' properties (Supabase returns 'exercises')
+                  const exercise = pr.exercise || pr.exercises;
+
+                  return (
+                    <div
+                      key={pr.id}
+                      className="text-left border md:border-2 border-yellow-400 p-2 md:p-3"
+                    >
+                      <p className="font-mono text-white font-bold text-sm md:text-base">
+                        {exercise?.name || "Unknown Exercise"}
+                      </p>
+                      <p className="text-xs md:text-sm text-gray-300 font-sans">
+                        {pr.record_type.replace("_", " ")}: {pr.value}
+                        {pr.record_type === "max_weight" ? " kg" : ""}
+                        {pr.record_type === "max_duration" ? "s" : ""}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

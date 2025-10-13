@@ -510,47 +510,64 @@ export function calculateStreak(workouts: EnhancedWorkout[]): WorkoutStreak {
         new Date(a.completed_at!).getTime(),
     );
 
-  let current_streak = 0;
-  let longest_streak = 0;
-  let temp_streak = 0;
-  let previous_date: Date | null = null;
-
-  for (const workout of sortedWorkouts) {
-    const workout_date = new Date(workout.completed_at!);
-    workout_date.setHours(0, 0, 0, 0);
-
-    if (!previous_date) {
-      temp_streak = 1;
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (
-        workout_date.getTime() === today.getTime() ||
-        workout_date.getTime() === today.getTime() - 86400000
-      ) {
-        current_streak = 1;
-      }
-    } else {
-      const day_diff = Math.floor(
-        (previous_date.getTime() - workout_date.getTime()) / 86400000,
-      );
-
-      if (day_diff === 1) {
-        temp_streak++;
-        if (temp_streak === 1 || current_streak > 0) {
-          current_streak = temp_streak;
-        }
-      } else {
-        longest_streak = Math.max(longest_streak, temp_streak);
-        temp_streak = 1;
-        if (current_streak > 0) {
-          current_streak = 0;
-        }
-      }
-    }
-
-    previous_date = workout_date;
+  if (sortedWorkouts.length === 0) {
+    return {
+      current_streak: 0,
+      longest_streak: 0,
+      last_workout_date: "",
+      total_workouts: 0,
+    };
   }
 
+  let current_streak = 0;
+  let longest_streak = 0;
+  let temp_streak = 1;
+  let streak_active = false;
+
+  // Check if streak is active (most recent workout is today or yesterday)
+  const most_recent = new Date(sortedWorkouts[0].completed_at!);
+  most_recent.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (
+    most_recent.getTime() === today.getTime() ||
+    most_recent.getTime() === yesterday.getTime()
+  ) {
+    streak_active = true;
+    current_streak = 1;
+  }
+
+  // Calculate streaks by going through workouts from most recent to oldest
+  for (let i = 1; i < sortedWorkouts.length; i++) {
+    const current_date = new Date(sortedWorkouts[i].completed_at!);
+    current_date.setHours(0, 0, 0, 0);
+
+    const previous_date = new Date(sortedWorkouts[i - 1].completed_at!);
+    previous_date.setHours(0, 0, 0, 0);
+
+    const day_diff = Math.floor(
+      (previous_date.getTime() - current_date.getTime()) / 86400000,
+    );
+
+    if (day_diff === 1) {
+      // Consecutive day
+      temp_streak++;
+      if (streak_active) {
+        current_streak++;
+      }
+    } else if (day_diff > 1) {
+      // Gap in streak
+      longest_streak = Math.max(longest_streak, temp_streak);
+      temp_streak = 1;
+      streak_active = false;
+    }
+    // day_diff === 0 means same day, don't increment
+  }
+
+  // Update longest streak with final temp_streak and current_streak
   longest_streak = Math.max(longest_streak, temp_streak, current_streak);
 
   return {
