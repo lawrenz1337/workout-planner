@@ -119,7 +119,8 @@ export interface PersonalRecord {
   id: string;
   user_id: string;
   exercise_id: string;
-  exercise?: EnhancedExercise; // Joined data
+  exercise?: EnhancedExercise; // Joined data (singular for code consistency)
+  exercises?: EnhancedExercise; // Joined data (plural from Supabase)
   record_type: RecordType;
   value: number;
   workout_log_id?: string;

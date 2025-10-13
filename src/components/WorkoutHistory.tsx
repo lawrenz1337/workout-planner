@@ -183,32 +183,37 @@ export default function WorkoutHistory({ userId }: WorkoutHistoryProps) {
             </button>
           </div>
           <div className="space-y-2">
-            {personalRecords.slice(0, 3).map((pr) => (
-              <div
-                key={pr.id}
-                className="flex items-center justify-between border-b border-yellow-400/30 pb-2"
-              >
-                <div>
-                  <p className="font-mono text-white text-sm">
-                    {pr.exercise?.name}
-                  </p>
-                  <p className="text-xs text-gray-400 font-sans">
-                    {new Date(pr.achieved_at).toLocaleDateString()}
-                  </p>
+            {personalRecords.slice(0, 3).map((pr) => {
+              // Handle both 'exercise' and 'exercises' properties (Supabase returns 'exercises')
+              const exercise = pr.exercise || pr.exercises;
+
+              return (
+                <div
+                  key={pr.id}
+                  className="flex items-center justify-between border-b border-yellow-400/30 pb-2"
+                >
+                  <div>
+                    <p className="font-mono text-white text-sm">
+                      {exercise?.name || "Unknown Exercise"}
+                    </p>
+                    <p className="text-xs text-gray-400 font-sans">
+                      {new Date(pr.achieved_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-mono text-yellow-400 font-bold text-sm md:text-base">
+                      {pr.value}
+                      {pr.record_type === "max_weight" && " kg"}
+                      {pr.record_type === "max_duration" && "s"}
+                      {pr.record_type === "max_reps" && " reps"}
+                    </p>
+                    <p className="text-xs text-gray-400 font-mono">
+                      {pr.record_type.replace("_", " ")}
+                    </p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-mono text-yellow-400 font-bold text-sm md:text-base">
-                    {pr.value}
-                    {pr.record_type === "max_weight" && " kg"}
-                    {pr.record_type === "max_duration" && "s"}
-                    {pr.record_type === "max_reps" && " reps"}
-                  </p>
-                  <p className="text-xs text-gray-400 font-mono">
-                    {pr.record_type.replace("_", " ")}
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -425,7 +430,10 @@ function PersonalRecordsView({
   // Group PRs by exercise
   const prsByExercise = personalRecords.reduce(
     (acc, pr) => {
-      const exerciseName = pr.exercise?.name || "Unknown";
+      // Handle both 'exercise' and 'exercises' properties (Supabase returns 'exercises')
+      const exercise = pr.exercise || pr.exercises;
+      const exerciseName = exercise?.name || "Unknown Exercise";
+
       if (!acc[exerciseName]) {
         acc[exerciseName] = [];
       }
